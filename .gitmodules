@@ -1,3 +1,6 @@
 [submodule "Libraries/n4"]
 	path = Libraries/n4
 	url = https://github.com/0xFireball/n4.git
+[submodule "Libraries/n4e"]
+	path = Libraries/n4e
+	url = https://github.com/0xFireball/n4e.git
