@@ -10,8 +10,8 @@ import n4.NGame;
 class Warship extends Boat {
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
-		angularThrust = 0.01 * Math.PI;
-		thrust = 1.5;
+		angularThrust = 0.03 * Math.PI;
+		thrust = 0.5;
 		wrapBounds = false;
 		mass = 84000;
 		sprayAmount = 20;
@@ -38,16 +38,21 @@ class Warship extends Boat {
 		// process AI logic
 		if (x < NGame.width / 4 || x > NGame.width * (3 / 4) || y < NGame.height / 4 || y > NGame.height * (3 / 4)) {
 			// if going near the edge, point to the center
+			var fieldCenter = new NVector(NGame.width / 2, NGame.height / 2);
+			var distToCenter = new NVector(x, y).subtractNew(fieldCenter);
 			// create an angle from the current position to the center
-			var angleToCenter = new NVector(x, y).angleBetween(new NPoint(NGame.width / 2, NGame.height / 2));
-			if (Math.abs(facingAngle - angleToCenter) > Math.PI / 6) {
+			var angleToCenter = NAngle.asRadians(new NVector(x, y).angleBetween(fieldCenter));
+			if (Math.abs(facingAngle - angleToCenter) > Math.PI / 8) {
 				if (facingAngle < angleToCenter) {
 					right = true;
 				} else if (facingAngle > angleToCenter) {
 					left = true;
 				}
 			}
-			up = true;
+			var fieldHypot = Math.sqrt(NGame.width * NGame.width + NGame.height * NGame.height);
+			if (distToCenter.length > fieldHypot / 4) {
+				up = true;
+			}
 		}
 
 		// cancel movement
