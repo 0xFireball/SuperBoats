@@ -4,6 +4,7 @@ import kha.Color;
 
 import n4.math.NPoint;
 import n4.math.NVector;
+import n4.math.NAngle;
 import n4.NGame;
 
 class PlayerBoat extends Boat {
@@ -35,14 +36,22 @@ class PlayerBoat extends Boat {
 		if (up && down) up = down = false;
 
 		// forward is in the direction the boat is pointing
-		var movementAngle = angle - 90; // facing upward
+		var facingAngle = angle; // facing upward
 		if (left) {
 			angularVelocity -= angularThrust;
 		} else if (right) {
 			angularVelocity += angularThrust;
 		}
-		var thrustVector = new NVector(0, -thrust);
-		thrustVector.rotate(new NPoint(0, 0), movementAngle);
+		var thrustVector = new NVector(0, 0);
+		drag.set(20, 20);
+		if (up) {
+			thrustVector.add(0, -thrust);
+		} else if (down) {
+			// thrustVector.add(0, thrust);
+			// brakes
+			drag.scale(6);
+		}
+		thrustVector.rotate(new NPoint(0, 0), NAngle.asDegrees(facingAngle));
 		velocity.addPoint(thrustVector);
 	}
 }
