@@ -6,8 +6,16 @@ import n4.math.NPoint;
 import n4.math.NVector;
 import n4.math.NAngle;
 import n4.NGame;
+import n4.effects.particles.NParticleEmitter;
+import n4.util.NColorUtil;
+
+import sprites.projectiles.*;
 
 class Warship extends Boat {
+	private static var attackTime:Float = 0.3;
+	private var attackTimer:Float = 0;
+	private var attackCount:Int = 0;
+
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
 		angularThrust = 0.03 * Math.PI;
@@ -21,8 +29,46 @@ class Warship extends Boat {
 
 	override public function update(dt:Float) {
 		movement();
+		attackTimer += dt;
+		if (attackTimer > attackTime) {
+			attackPlayer();
+			++attackCount;
+			attackTimer = 0;
+		}
 
 		super.update(dt);
+	}
+
+	private function attackPlayer() {
+		if (attackCount % 3 == 0) {
+			var projectile:Projectile = null;
+			projectile = new Cannonball(x, y);
+			var bulletSp = projectile.movementSpeed;
+			var player = Registry.PS.player;
+			var dx = (x + width / 2) - (player.x + player.width / 2);
+			var dy = (y + height / 2) - (player.y + player.height / 2);
+			var m = -Math.sqrt(dx * dx + dy * dy);
+			shootProjectile(projectile, dx * bulletSp / m, dy * bulletSp / m);
+		}
+	}
+
+	private function shootProjectile(pj:Projectile, vx:Float, vy:Float) {
+		pj.velocity.set(vx, vy);
+		Registry.PS.projectiles.add(pj);
+		var recoilSpeed = pj.momentum / mass;
+		var recoilMotion = new NVector(pj.velocity.x, pj.velocity.y);
+		var recoilVelocity = recoilMotion.normalize().scale(-recoilSpeed);
+		velocity.x += recoilVelocity.x;
+		velocity.y += recoilVelocity.y;
+		if (x > NGame.width) x = x % NGame.width;
+		if (y > NGame.height) y = y % NGame.height;
+		if (x < 0) x += NGame.width;
+		if (y < 0) y += NGame.height;
+		for (i in 0...19) {
+			Registry.currentEmitterState.emitter.emitSquare(x, y, 6,
+				NParticleEmitter.velocitySpread(45, vx / 4, vy / 4),
+				NColorUtil.randCol(0.5, 0.5, 0.5), 0.6);
+		}
 	}
 
 	private function movement() {
