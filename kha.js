@@ -3711,8 +3711,8 @@ kha_Shaders.init = function() {
 	kha_Shaders.painter_colored_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_colored_vertData"))),"painter_colored_vert");
 	kha_Shaders.painter_image_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_fragData"))),"painter_image_frag");
 	kha_Shaders.painter_image_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_vertData"))),"painter_image_vert");
-	kha_Shaders.painter_text_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_vertData"))),"painter_text_vert");
 	kha_Shaders.painter_text_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_fragData"))),"painter_text_frag");
+	kha_Shaders.painter_text_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_vertData"))),"painter_text_vert");
 	kha_Shaders.painter_video_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_fragData"))),"painter_video_frag");
 	kha_Shaders.painter_video_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_vertData"))),"painter_video_vert");
 };
@@ -21688,7 +21688,7 @@ n4_input_NPressEventState.prototype = {
 	}
 	,get_justPressed: function() {
 		if(this.down) {
-			return this.pressFrame == n4_NGame.updateFrameCount;
+			return n4_NGame.updateFrameCount - this.pressFrame <= n4_input_NPressEventState.justPressedFrames;
 		} else {
 			return false;
 		}
@@ -23202,6 +23202,7 @@ states_IntroState.prototype = $extend(n4_NState.prototype,{
 	,__class__: states_IntroState
 });
 var states_MenuState = function() {
+	this.creationFrame = n4_NGame.updateFrameCount;
 	n4_NState.call(this);
 };
 $hxClasses["states.MenuState"] = states_MenuState;
@@ -23209,6 +23210,9 @@ states_MenuState.__name__ = true;
 states_MenuState.__super__ = n4_NState;
 states_MenuState.prototype = $extend(n4_NState.prototype,{
 	dummyBoats: null
+	,creationFrame: null
+	,titleText: null
+	,titleTextFinalCenter: null
 	,emitter: null
 	,create: function() {
 		Registry.MS = this;
@@ -23223,24 +23227,813 @@ states_MenuState.prototype = $extend(n4_NState.prototype,{
 		this.add(this.dummyBoats);
 		this.emitter = new n4_effects_particles_NSquareParticleEmitter(200);
 		this.add(this.emitter);
-		var titleText = new n4e_ui_NEText(0,n4_NGame.height * 0.2,"SuperBoats",50);
-		titleText.screenCenter(n4_util_NAxes.X);
-		this.add(titleText);
+		this.titleText = new n4e_ui_NEText(0,n4_NGame.height * 0.2,"SuperBoats",50);
+		this.titleText.screenCenter(n4_util_NAxes.X);
+		this.titleTextFinalCenter = this.titleText.x;
+		this.add(this.titleText);
+		var howToStartText = new n4e_ui_NEText(0,n4_NGame.height * 0.5,"Press RETURN to play",30);
+		howToStartText.screenCenter(n4_util_NAxes.X);
+		this.add(howToStartText);
 		var madeWithText = new n4e_ui_NEText(0,0,"made with n4 engine",32);
 		madeWithText.set_x(n4_NGame.width - madeWithText.get_width() * 1.2);
 		madeWithText.set_y(n4_NGame.height - madeWithText.get_height() * 1.4);
 		this.add(madeWithText);
 	}
 	,update: function(dt) {
+		var ttAnimProgress = (n4_NGame.updateFrameCount - this.creationFrame) / 20;
+		if(ttAnimProgress <= 1) {
+			var t = ttAnimProgress;
+			var rate;
+			if(ttAnimProgress == 0) {
+				rate = 0;
+			} else if(ttAnimProgress == 1) {
+				rate = 1;
+			} else {
+				t = ttAnimProgress - 1;
+				rate = t * t * (2.70158 * t + 1.70158) + 1;
+			}
+			this.titleText.set_x(0 * (1 - rate) + this.titleTextFinalCenter * rate);
+		}
 		if(n4_NGame.updateFrameCount % n4_NGame.targetFramerate * 6 == 0) {
 			this.dummyBoats.forEachActive(function(d) {
 				d.randomizeMotion();
 			});
 		}
+		if(n4_NGame.keys.justPressed(["ENTER"])) {
+			this.startGame();
+		}
+		var tmp = ((0.85 + 0.1 * Math.sin(n4_NGame.updateFrameCount / 8) + 0.05 * Math.sin(n4_NGame.updateFrameCount / (Math.random() * 10))) * 255 | 0) << 24;
+		this.titleText.color = tmp | (((this.titleText.color & 16711680) >>> 16) * 0.00392156862745098 * 255 | 0) << 16 | (((this.titleText.color & 65280) >>> 8) * 0.00392156862745098 * 255 | 0) << 8 | ((this.titleText.color & 255) * 0.00392156862745098 * 255 | 0);
 		n4_NState.prototype.update.call(this,dt);
+	}
+	,startGame: function() {
+		n4_NGame.switchState(new states_PlayState());
 	}
 	,__class__: states_MenuState
 });
+var states_PlayState = function() {
+	n4_NState.call(this);
+};
+$hxClasses["states.PlayState"] = states_PlayState;
+states_PlayState.__name__ = true;
+states_PlayState.__super__ = n4_NState;
+states_PlayState.prototype = $extend(n4_NState.prototype,{
+	__class__: states_PlayState
+});
+var tweenxcore_Easing = function() { };
+$hxClasses["tweenxcore.Easing"] = tweenxcore_Easing;
+tweenxcore_Easing.__name__ = true;
+tweenxcore_Easing.linear = function(t) {
+	return t;
+};
+tweenxcore_Easing.sineIn = function(t) {
+	if(t == 0) {
+		return 0;
+	} else if(t == 1) {
+		return 1;
+	} else {
+		return 1 - Math.cos(t * 1.5707963267948966);
+	}
+};
+tweenxcore_Easing.sineOut = function(t) {
+	if(t == 0) {
+		return 0;
+	} else if(t == 1) {
+		return 1;
+	} else {
+		return Math.sin(t * 1.5707963267948966);
+	}
+};
+tweenxcore_Easing.sineInOut = function(t) {
+	if(t == 0) {
+		return 0;
+	} else if(t == 1) {
+		return 1;
+	} else {
+		return -0.5 * (Math.cos(3.1415926535897932384626433832795 * t) - 1);
+	}
+};
+tweenxcore_Easing.sineOutIn = function(t) {
+	if(t == 0) {
+		return 0;
+	} else if(t == 1) {
+		return 1;
+	} else if(t < 0.5) {
+		return 0.5 * Math.sin(t * 2 * 1.5707963267948966);
+	} else {
+		return -0.5 * Math.cos((t * 2 - 1) * 1.5707963267948966) + 1;
+	}
+};
+tweenxcore_Easing.quadIn = function(t) {
+	return t * t;
+};
+tweenxcore_Easing.quadOut = function(t) {
+	return -t * (t - 2);
+};
+tweenxcore_Easing.quadInOut = function(t) {
+	if(t < 0.5) {
+		return 2 * t * t;
+	} else {
+		return -2 * (--t * t) + 1;
+	}
+};
+tweenxcore_Easing.quadOutIn = function(t) {
+	if(t < 0.5) {
+		return -0.5 * (t *= 2) * (t - 2);
+	} else {
+		t = t * 2 - 1;
+		return 0.5 * t * t + 0.5;
+	}
+};
+tweenxcore_Easing.cubicIn = function(t) {
+	return t * t * t;
+};
+tweenxcore_Easing.cubicOut = function(t) {
+	return --t * t * t + 1;
+};
+tweenxcore_Easing.cubicInOut = function(t) {
+	if((t *= 2) < 1) {
+		return 0.5 * t * t * t;
+	} else {
+		return 0.5 * ((t -= 2) * t * t + 2);
+	}
+};
+tweenxcore_Easing.cubicOutIn = function(t) {
+	t = t * 2 - 1;
+	return 0.5 * (t * t * t + 1);
+};
+tweenxcore_Easing.quartIn = function(t) {
+	return (t *= t) * t;
+};
+tweenxcore_Easing.quartOut = function(t) {
+	t = --t * t;
+	return 1 - t * t;
+};
+tweenxcore_Easing.quartInOut = function(t) {
+	if((t *= 2) < 1) {
+		return 0.5 * (t *= t) * t;
+	} else {
+		t = (t -= 2) * t;
+		return -0.5 * (t * t - 2);
+	}
+};
+tweenxcore_Easing.quartOutIn = function(t) {
+	if(t < 0.5) {
+		t = t * 2 - 1;
+		return -0.5 * (t *= t) * t + 0.5;
+	} else {
+		t = t * 2 - 1;
+		return 0.5 * (t *= t) * t + 0.5;
+	}
+};
+tweenxcore_Easing.quintIn = function(t) {
+	return t * (t *= t) * t;
+};
+tweenxcore_Easing.quintOut = function(t) {
+	return --t * (t *= t) * t + 1;
+};
+tweenxcore_Easing.quintInOut = function(t) {
+	if((t *= 2) < 1) {
+		return 0.5 * t * (t *= t) * t;
+	} else {
+		return 0.5 * (t -= 2) * (t *= t) * t + 1;
+	}
+};
+tweenxcore_Easing.quintOutIn = function(t) {
+	t = t * 2 - 1;
+	return 0.5 * (t * (t *= t) * t + 1);
+};
+tweenxcore_Easing.expoIn = function(t) {
+	if(t == 0) {
+		return 0;
+	} else {
+		return Math.exp(6.931471805599453 * (t - 1));
+	}
+};
+tweenxcore_Easing.expoOut = function(t) {
+	if(t == 1) {
+		return 1;
+	} else {
+		return 1 - Math.exp(-6.9314718055994531 * t);
+	}
+};
+tweenxcore_Easing.expoInOut = function(t) {
+	if(t == 0) {
+		return 0;
+	} else if(t == 1) {
+		return 1;
+	} else if((t *= 2) < 1) {
+		return 0.5 * Math.exp(6.931471805599453 * (t - 1));
+	} else {
+		return 0.5 * (2 - Math.exp(-6.9314718055994531 * (t - 1)));
+	}
+};
+tweenxcore_Easing.expoOutIn = function(t) {
+	if(t < 0.5) {
+		return 0.5 * (1 - Math.exp(-13.862943611198906 * t));
+	} else if(t == 0.5) {
+		return 0.5;
+	} else {
+		return 0.5 * (Math.exp(13.862943611198906 * (t - 1)) + 1);
+	}
+};
+tweenxcore_Easing.circIn = function(t) {
+	if(t < -1 || 1 < t) {
+		return 0;
+	} else {
+		return 1 - Math.sqrt(1 - t * t);
+	}
+};
+tweenxcore_Easing.circOut = function(t) {
+	if(t < 0 || 2 < t) {
+		return 0;
+	} else {
+		return Math.sqrt(t * (2 - t));
+	}
+};
+tweenxcore_Easing.circInOut = function(t) {
+	if(t < -0.5 || 1.5 < t) {
+		return 0.5;
+	} else if((t *= 2) < 1) {
+		return -0.5 * (Math.sqrt(1 - t * t) - 1);
+	} else {
+		return 0.5 * (Math.sqrt(1 - (t -= 2) * t) + 1);
+	}
+};
+tweenxcore_Easing.circOutIn = function(t) {
+	if(t < 0) {
+		return 0;
+	} else if(1 < t) {
+		return 1;
+	} else if(t < 0.5) {
+		t = t * 2 - 1;
+		return 0.5 * Math.sqrt(1 - t * t);
+	} else {
+		t = t * 2 - 1;
+		return -0.5 * (Math.sqrt(1 - t * t) - 1 - 1);
+	}
+};
+tweenxcore_Easing.bounceIn = function(t) {
+	t = 1 - t;
+	if(t < 0.36363636363636365) {
+		return 1 - 7.5625 * t * t;
+	} else if(t < 0.72727272727272729) {
+		return 1 - (7.5625 * (t -= 0.54545454545454541) * t + 0.75);
+	} else if(t < 0.90909090909090906) {
+		return 1 - (7.5625 * (t -= 0.81818181818181823) * t + 0.9375);
+	} else {
+		return 1 - (7.5625 * (t -= 0.95454545454545459) * t + 0.984375);
+	}
+};
+tweenxcore_Easing.bounceOut = function(t) {
+	if(t < 0.36363636363636365) {
+		return 7.5625 * t * t;
+	} else if(t < 0.72727272727272729) {
+		return 7.5625 * (t -= 0.54545454545454541) * t + 0.75;
+	} else if(t < 0.90909090909090906) {
+		return 7.5625 * (t -= 0.81818181818181823) * t + 0.9375;
+	} else {
+		return 7.5625 * (t -= 0.95454545454545459) * t + 0.984375;
+	}
+};
+tweenxcore_Easing.bounceInOut = function(t) {
+	if(t < 0.5) {
+		t = 1 - t * 2;
+		if(t < 0.36363636363636365) {
+			return (1 - 7.5625 * t * t) * 0.5;
+		} else if(t < 0.72727272727272729) {
+			return (1 - (7.5625 * (t -= 0.54545454545454541) * t + 0.75)) * 0.5;
+		} else if(t < 0.90909090909090906) {
+			return (1 - (7.5625 * (t -= 0.81818181818181823) * t + 0.9375)) * 0.5;
+		} else {
+			return (1 - (7.5625 * (t -= 0.95454545454545459) * t + 0.984375)) * 0.5;
+		}
+	} else {
+		t = t * 2 - 1;
+		if(t < 0.36363636363636365) {
+			return 7.5625 * t * t * 0.5 + 0.5;
+		} else if(t < 0.72727272727272729) {
+			return (7.5625 * (t -= 0.54545454545454541) * t + 0.75) * 0.5 + 0.5;
+		} else if(t < 0.90909090909090906) {
+			return (7.5625 * (t -= 0.81818181818181823) * t + 0.9375) * 0.5 + 0.5;
+		} else {
+			return (7.5625 * (t -= 0.95454545454545459) * t + 0.984375) * 0.5 + 0.5;
+		}
+	}
+};
+tweenxcore_Easing.bounceOutIn = function(t) {
+	if(t < 0.5) {
+		if((t *= 2) < 0.36363636363636365) {
+			return 0.5 * (7.5625 * t * t);
+		} else if(t < 0.72727272727272729) {
+			return 0.5 * (7.5625 * (t -= 0.54545454545454541) * t + 0.75);
+		} else if(t < 0.90909090909090906) {
+			return 0.5 * (7.5625 * (t -= 0.81818181818181823) * t + 0.9375);
+		} else {
+			return 0.5 * (7.5625 * (t -= 0.95454545454545459) * t + 0.984375);
+		}
+	} else {
+		t = 1 - (t * 2 - 1);
+		if(t < 0.36363636363636365) {
+			return 0.5 - 0.5 * (7.5625 * t * t) + 0.5;
+		} else if(t < 0.72727272727272729) {
+			return 0.5 - 0.5 * (7.5625 * (t -= 0.54545454545454541) * t + 0.75) + 0.5;
+		} else if(t < 0.90909090909090906) {
+			return 0.5 - 0.5 * (7.5625 * (t -= 0.81818181818181823) * t + 0.9375) + 0.5;
+		} else {
+			return 0.5 - 0.5 * (7.5625 * (t -= 0.95454545454545459) * t + 0.984375) + 0.5;
+		}
+	}
+};
+tweenxcore_Easing.backIn = function(t) {
+	if(t == 0) {
+		return 0;
+	} else if(t == 1) {
+		return 1;
+	} else {
+		return t * t * (2.70158 * t - 1.70158);
+	}
+};
+tweenxcore_Easing.backOut = function(t) {
+	if(t == 0) {
+		return 0;
+	} else if(t == 1) {
+		return 1;
+	} else {
+		return --t * t * (2.70158 * t + 1.70158) + 1;
+	}
+};
+tweenxcore_Easing.backInOut = function(t) {
+	if(t == 0) {
+		return 0;
+	} else if(t == 1) {
+		return 1;
+	} else if((t *= 2) < 1) {
+		return 0.5 * (t * t * (3.5949095 * t - 2.5949095));
+	} else {
+		return 0.5 * ((t -= 2) * t * (3.5949095 * t + 2.5949095) + 2);
+	}
+};
+tweenxcore_Easing.backOutIn = function(t) {
+	if(t == 0) {
+		return 0;
+	} else if(t == 1) {
+		return 1;
+	} else if(t < 0.5) {
+		t = t * 2 - 1;
+		return 0.5 * (t * t * (2.70158 * t + 1.70158) + 1);
+	} else {
+		t = t * 2 - 1;
+		return 0.5 * t * t * (2.70158 * t - 1.70158) + 0.5;
+	}
+};
+tweenxcore_Easing.elasticIn = function(t) {
+	if(t == 0) {
+		return 0;
+	} else if(t == 1) {
+		return 1;
+	} else {
+		return -(Math.exp(6.931471805599453 * --t) * Math.sin((t * 0.001 - 7.5e-005) * 6.2831853071795862 / 0.0003));
+	}
+};
+tweenxcore_Easing.elasticOut = function(t) {
+	if(t == 0) {
+		return 0;
+	} else if(t == 1) {
+		return 1;
+	} else {
+		return Math.exp(-6.9314718055994531 * t) * Math.sin((t * 0.001 - 7.5e-005) * 6.2831853071795862 / 0.0003) + 1;
+	}
+};
+tweenxcore_Easing.elasticInOut = function(t) {
+	if(t == 0) {
+		return 0;
+	} else if(t == 1) {
+		return 1;
+	} else if((t *= 2) < 1) {
+		return -0.5 * (Math.exp(6.931471805599453 * --t) * Math.sin((t * 0.001 - 7.5e-005) * 6.2831853071795862 / 0.0003));
+	} else {
+		return Math.exp(-6.9314718055994531 * --t) * Math.sin((t * 0.001 - 7.5e-005) * 6.2831853071795862 / 0.0003) * 0.5 + 1;
+	}
+};
+tweenxcore_Easing.elasticOutIn = function(t) {
+	if(t < 0.5) {
+		if((t *= 2) == 0) {
+			return 0;
+		} else {
+			return 0.5 * Math.exp(-6.9314718055994531 * t) * Math.sin((t * 0.001 - 7.5e-005) * 6.2831853071795862 / 0.0003) + 0.5;
+		}
+	} else if(t == 0.5) {
+		return 0.5;
+	} else if(t == 1) {
+		return 1;
+	} else {
+		t = t * 2 - 1;
+		return -(0.5 * Math.exp(6.931471805599453 * --t) * Math.sin((t * 0.001 - 7.5e-005) * 6.2831853071795862 / 0.0003)) + 0.5;
+	}
+};
+tweenxcore_Easing.warpOut = function(t) {
+	if(t <= 0) {
+		return 0;
+	} else {
+		return 1;
+	}
+};
+tweenxcore_Easing.warpIn = function(t) {
+	if(t < 1) {
+		return 0;
+	} else {
+		return 1;
+	}
+};
+tweenxcore_Easing.warpInOut = function(t) {
+	if(t < 0.5) {
+		return 0;
+	} else {
+		return 1;
+	}
+};
+tweenxcore_Easing.warpOutIn = function(t) {
+	if(t <= 0) {
+		return 0;
+	} else if(t < 1) {
+		return 0.5;
+	} else {
+		return 1;
+	}
+};
+var tweenxcore_FloatTools = function() { };
+$hxClasses["tweenxcore.FloatTools"] = tweenxcore_FloatTools;
+tweenxcore_FloatTools.__name__ = true;
+tweenxcore_FloatTools.revert = function(rate) {
+	return 1 - rate;
+};
+tweenxcore_FloatTools.clamp = function(value,min,max) {
+	if(max == null) {
+		max = 1.0;
+	}
+	if(min == null) {
+		min = 0.0;
+	}
+	if(value <= min) {
+		return min;
+	} else if(max <= value) {
+		return max;
+	} else {
+		return value;
+	}
+};
+tweenxcore_FloatTools.lerp = function(rate,from,to) {
+	return from * (1 - rate) + to * rate;
+};
+tweenxcore_FloatTools.inverseLerp = function(value,from,to) {
+	return (value - from) / (to - from);
+};
+tweenxcore_FloatTools.repeat = function(value,from,to) {
+	if(to == null) {
+		to = 1.0;
+	}
+	if(from == null) {
+		from = 0.0;
+	}
+	var p = (value - from) / (to - from);
+	return p - Math.floor(p);
+};
+tweenxcore_FloatTools.shake = function(rate,center,randomFunc) {
+	if(center == null) {
+		center = 0.0;
+	}
+	if(randomFunc == null) {
+		randomFunc = Math.random;
+	}
+	var rate1 = randomFunc();
+	return center + (-rate * (1 - rate1) + rate * rate1);
+};
+tweenxcore_FloatTools.spread = function(rate,scale) {
+	return -scale * (1 - rate) + scale * rate;
+};
+tweenxcore_FloatTools.sinByRate = function(rate) {
+	return Math.sin(rate * 2 * Math.PI);
+};
+tweenxcore_FloatTools.cosByRate = function(rate) {
+	return Math.cos(rate * 2 * Math.PI);
+};
+tweenxcore_FloatTools.yoyo = function(rate,easing) {
+	return easing((rate < 0.5 ? rate : 1 - rate) * 2);
+};
+tweenxcore_FloatTools.zigzag = function(rate,easing) {
+	if(rate < 0.5) {
+		return easing(rate * 2);
+	} else {
+		return 1 - easing((rate - 0.5) * 2);
+	}
+};
+tweenxcore_FloatTools.mixEasing = function(rate,easing1,easing2,easing2Strength) {
+	if(easing2Strength == null) {
+		easing2Strength = 0.5;
+	}
+	return easing1(rate) * (1 - easing2Strength) + easing2(rate) * easing2Strength;
+};
+tweenxcore_FloatTools.crossfadeEasing = function(rate,easing1,easing2,easing2StrengthEasing,easing2StrengthStart,easing2StrengthEnd) {
+	if(easing2StrengthEnd == null) {
+		easing2StrengthEnd = 1;
+	}
+	if(easing2StrengthStart == null) {
+		easing2StrengthStart = 0;
+	}
+	var rate1 = easing2StrengthEasing(rate);
+	var rate2 = easing2StrengthStart * (1 - rate1) + easing2StrengthEnd * rate1;
+	return easing1(rate) * (1 - rate2) + easing2(rate) * rate2;
+};
+tweenxcore_FloatTools.connectEasing = function(time,easing1,easing2,switchTime,switchValue) {
+	if(switchValue == null) {
+		switchValue = 0.5;
+	}
+	if(switchTime == null) {
+		switchTime = 0.5;
+	}
+	if(time < switchTime) {
+		var rate = easing1(time / switchTime);
+		return 0 * (1 - rate) + switchValue * rate;
+	} else {
+		var rate1 = easing2((time - switchTime) / (1 - switchTime));
+		return switchValue * (1 - rate1) + rate1;
+	}
+};
+tweenxcore_FloatTools.oneTwoEasing = function(time,easingOne,easingTwo,switchTime) {
+	if(switchTime == null) {
+		switchTime = 0.5;
+	}
+	if(time < switchTime) {
+		return easingOne(time / switchTime);
+	} else {
+		return easingTwo((time - switchTime) / (1 - switchTime));
+	}
+};
+tweenxcore_FloatTools.binarySearch = function(sortedValues,value,boundaryMode) {
+	if(boundaryMode == null) {
+		boundaryMode = 0;
+	}
+	var min = 0;
+	var max = sortedValues.length;
+	if(boundaryMode == 0) {
+		while(true) {
+			var next = ((max - min) / 2 | 0) + min;
+			if(sortedValues[next] <= value) {
+				min = next + 1;
+			} else {
+				max = next;
+			}
+			if(min == max) {
+				break;
+			}
+		}
+	} else {
+		while(true) {
+			var next1 = ((max - min) / 2 | 0) + min;
+			if(sortedValues[next1] < value) {
+				min = next1 + 1;
+			} else {
+				max = next1;
+			}
+			if(min == max) {
+				break;
+			}
+		}
+	}
+	return min;
+};
+tweenxcore_FloatTools.polyline = function(rate,values) {
+	if(values.length < 2) {
+		throw new js__$Boot_HaxeError("points length must be more than 2");
+	} else {
+		var max = values.length - 1;
+		var scaledRate = rate * max;
+		var max1 = max - 1;
+		var index = Math.floor(scaledRate <= 0 ? 0 : max1 <= scaledRate ? max1 : scaledRate);
+		var innerRate = scaledRate - index;
+		return values[index] * (1 - innerRate) + values[index + 1] * innerRate;
+	}
+};
+tweenxcore_FloatTools.bezier2 = function(rate,from,control,to) {
+	return (from * (1 - rate) + control * rate) * (1 - rate) + (control * (1 - rate) + to * rate) * rate;
+};
+tweenxcore_FloatTools.bezier3 = function(rate,from,control1,control2,to) {
+	var control = control1 * (1 - rate) + control2 * rate;
+	return ((from * (1 - rate) + control1 * rate) * (1 - rate) + control * rate) * (1 - rate) + (control * (1 - rate) + (control2 * (1 - rate) + to * rate) * rate) * rate;
+};
+tweenxcore_FloatTools.bezier = function(rate,values) {
+	if(values.length < 2) {
+		throw new js__$Boot_HaxeError("points length must be more than 2");
+	} else if(values.length == 2) {
+		return values[0] * (1 - rate) + values[1] * rate;
+	} else if(values.length == 3) {
+		var control = values[1];
+		return (values[0] * (1 - rate) + control * rate) * (1 - rate) + (control * (1 - rate) + values[2] * rate) * rate;
+	} else {
+		return tweenxcore_FloatTools._bezier(rate,values);
+	}
+};
+tweenxcore_FloatTools._bezier = function(rate,values) {
+	if(values.length == 4) {
+		var control1 = values[1];
+		var control2 = values[2];
+		var control = control1 * (1 - rate) + control2 * rate;
+		return ((values[0] * (1 - rate) + control1 * rate) * (1 - rate) + control * rate) * (1 - rate) + (control * (1 - rate) + (control2 * (1 - rate) + values[3] * rate) * rate) * rate;
+	}
+	var _g = [];
+	var _g2 = 0;
+	var _g1 = values.length - 1;
+	while(_g2 < _g1) {
+		var i = _g2++;
+		_g.push(values[i] * (1 - rate) + values[i + 1] * rate);
+	}
+	return tweenxcore_FloatTools._bezier(rate,_g);
+};
+tweenxcore_FloatTools.uniformQuadraticBSpline = function(rate,values) {
+	if(values.length < 2) {
+		throw new js__$Boot_HaxeError("points length must be more than 2");
+	} else if(values.length == 2) {
+		return values[0] * (1 - rate) + values[1] * rate;
+	} else {
+		var max = values.length - 2;
+		var scaledRate = rate * max;
+		var max1 = max - 1;
+		var index = Math.floor(scaledRate <= 0 ? 0 : max1 <= scaledRate ? max1 : scaledRate);
+		var innerRate = scaledRate - index;
+		var p0 = values[index];
+		var p1 = values[index + 1];
+		return innerRate * innerRate * (p0 / 2 - p1 + values[index + 2] / 2) + innerRate * (-p0 + p1) + p0 / 2 + p1 / 2;
+	}
+};
+tweenxcore_FloatTools.frameToSecond = function(frame,fps) {
+	return frame / fps;
+};
+tweenxcore_FloatTools.secondToFrame = function(second,fps) {
+	return second * fps;
+};
+tweenxcore_FloatTools.degreeToRate = function(degree) {
+	return degree / 360;
+};
+tweenxcore_FloatTools.rateToDegree = function(rate) {
+	return rate * 360;
+};
+tweenxcore_FloatTools.radianToRate = function(radian) {
+	return radian / (2 * Math.PI);
+};
+tweenxcore_FloatTools.rateToRadian = function(rate) {
+	return rate * 2 * Math.PI;
+};
+tweenxcore_FloatTools.millisecondToBeat = function(millisecond,bpm) {
+	return millisecond * bpm / 60000;
+};
+tweenxcore_FloatTools.beatToMillisecond = function(beat,bpm) {
+	return beat * 60000 / bpm;
+};
+var tweenxcore_PointTools = function() { };
+$hxClasses["tweenxcore.PointTools"] = tweenxcore_PointTools;
+tweenxcore_PointTools.__name__ = true;
+tweenxcore_PointTools.polyline = function(outputPoint,rate,points) {
+	var xs = [];
+	var ys = [];
+	var p = $iterator(points)();
+	while(p.hasNext()) {
+		var p1 = p.next();
+		xs.push(p1.x);
+		ys.push(p1.y);
+	}
+	var tmp;
+	if(xs.length < 2) {
+		throw new js__$Boot_HaxeError("points length must be more than 2");
+	} else {
+		var max = xs.length - 1;
+		var scaledRate = rate * max;
+		var max1 = max - 1;
+		var index = Math.floor(scaledRate <= 0 ? 0 : max1 <= scaledRate ? max1 : scaledRate);
+		var innerRate = scaledRate - index;
+		tmp = xs[index] * (1 - innerRate) + xs[index + 1] * innerRate;
+	}
+	outputPoint.x = tmp;
+	var tmp1;
+	if(ys.length < 2) {
+		throw new js__$Boot_HaxeError("points length must be more than 2");
+	} else {
+		var max2 = ys.length - 1;
+		var scaledRate1 = rate * max2;
+		var max3 = max2 - 1;
+		var index1 = Math.floor(scaledRate1 <= 0 ? 0 : max3 <= scaledRate1 ? max3 : scaledRate1);
+		var innerRate1 = scaledRate1 - index1;
+		tmp1 = ys[index1] * (1 - innerRate1) + ys[index1 + 1] * innerRate1;
+	}
+	outputPoint.y = tmp1;
+};
+tweenxcore_PointTools.bezier2 = function(outputPoint,rate,from,control,to) {
+	var control1 = control.x;
+	outputPoint.x = (from.x * (1 - rate) + control1 * rate) * (1 - rate) + (control1 * (1 - rate) + from.x * rate) * rate;
+	var control2 = control.y;
+	outputPoint.y = (from.y * (1 - rate) + control2 * rate) * (1 - rate) + (control2 * (1 - rate) + from.y * rate) * rate;
+};
+tweenxcore_PointTools.bezier3 = function(outputPoint,rate,from,control1,control2,to) {
+	var control11 = control1.x;
+	var control21 = control2.x;
+	var control = control11 * (1 - rate) + control21 * rate;
+	outputPoint.x = ((from.x * (1 - rate) + control11 * rate) * (1 - rate) + control * rate) * (1 - rate) + (control * (1 - rate) + (control21 * (1 - rate) + from.x * rate) * rate) * rate;
+	var control12 = control1.y;
+	var control22 = control2.y;
+	var control3 = control12 * (1 - rate) + control22 * rate;
+	outputPoint.y = ((from.y * (1 - rate) + control12 * rate) * (1 - rate) + control3 * rate) * (1 - rate) + (control3 * (1 - rate) + (control22 * (1 - rate) + from.y * rate) * rate) * rate;
+};
+tweenxcore_PointTools.bezier = function(outputPoint,rate,points) {
+	var xs = [];
+	var ys = [];
+	var p = $iterator(points)();
+	while(p.hasNext()) {
+		var p1 = p.next();
+		xs.push(p1.x);
+		ys.push(p1.y);
+	}
+	var tmp;
+	if(xs.length < 2) {
+		throw new js__$Boot_HaxeError("points length must be more than 2");
+	} else if(xs.length == 2) {
+		tmp = xs[0] * (1 - rate) + xs[1] * rate;
+	} else if(xs.length == 3) {
+		var control = xs[1];
+		tmp = (xs[0] * (1 - rate) + control * rate) * (1 - rate) + (control * (1 - rate) + xs[2] * rate) * rate;
+	} else {
+		tmp = tweenxcore_FloatTools._bezier(rate,xs);
+	}
+	outputPoint.x = tmp;
+	var tmp1;
+	if(ys.length < 2) {
+		throw new js__$Boot_HaxeError("points length must be more than 2");
+	} else if(ys.length == 2) {
+		tmp1 = ys[0] * (1 - rate) + ys[1] * rate;
+	} else if(ys.length == 3) {
+		var control1 = ys[1];
+		tmp1 = (ys[0] * (1 - rate) + control1 * rate) * (1 - rate) + (control1 * (1 - rate) + ys[2] * rate) * rate;
+	} else {
+		tmp1 = tweenxcore_FloatTools._bezier(rate,ys);
+	}
+	outputPoint.y = tmp1;
+};
+tweenxcore_PointTools.uniformQuadraticBSpline = function(outputPoint,rate,points) {
+	var xs = [];
+	var ys = [];
+	var p = $iterator(points)();
+	while(p.hasNext()) {
+		var p1 = p.next();
+		xs.push(p1.x);
+		ys.push(p1.y);
+	}
+	var tmp;
+	if(xs.length < 2) {
+		throw new js__$Boot_HaxeError("points length must be more than 2");
+	} else if(xs.length == 2) {
+		tmp = xs[0] * (1 - rate) + xs[1] * rate;
+	} else {
+		var max = xs.length - 2;
+		var scaledRate = rate * max;
+		var max1 = max - 1;
+		var index = Math.floor(scaledRate <= 0 ? 0 : max1 <= scaledRate ? max1 : scaledRate);
+		var innerRate = scaledRate - index;
+		var p0 = xs[index];
+		var p11 = xs[index + 1];
+		tmp = innerRate * innerRate * (p0 / 2 - p11 + xs[index + 2] / 2) + innerRate * (-p0 + p11) + p0 / 2 + p11 / 2;
+	}
+	outputPoint.x = tmp;
+	var tmp1;
+	if(ys.length < 2) {
+		throw new js__$Boot_HaxeError("points length must be more than 2");
+	} else if(ys.length == 2) {
+		tmp1 = ys[0] * (1 - rate) + ys[1] * rate;
+	} else {
+		var max2 = ys.length - 2;
+		var scaledRate1 = rate * max2;
+		var max3 = max2 - 1;
+		var index1 = Math.floor(scaledRate1 <= 0 ? 0 : max3 <= scaledRate1 ? max3 : scaledRate1);
+		var innerRate1 = scaledRate1 - index1;
+		var p01 = ys[index1];
+		var p12 = ys[index1 + 1];
+		tmp1 = innerRate1 * innerRate1 * (p01 / 2 - p12 + ys[index1 + 2] / 2) + innerRate1 * (-p01 + p12) + p01 / 2 + p12 / 2;
+	}
+	outputPoint.y = tmp1;
+};
+var tweenxcore_MatrixTools = function() { };
+$hxClasses["tweenxcore.MatrixTools"] = tweenxcore_MatrixTools;
+tweenxcore_MatrixTools.__name__ = true;
+tweenxcore_MatrixTools.createSimilarityTransform = function(outputMatrix,fromX,fromY,toX,toY) {
+	var dx = toX - fromX;
+	var dy = toY - fromY;
+	var rot = Math.atan2(dy,dx);
+	var d = Math.sqrt(dx * dx + dy * dy);
+	outputMatrix.a = d * Math.cos(rot);
+	outputMatrix.b = d * Math.sin(rot);
+	outputMatrix.c = -d * Math.sin(rot);
+	outputMatrix.d = d * Math.cos(rot);
+	outputMatrix.tx = fromX;
+	outputMatrix.ty = fromY;
+};
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; }
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; }
@@ -23303,6 +24096,7 @@ kha_CompilerDefines.canvas_id = "khanvas";
 kha_CompilerDefines.kha_version = "1611";
 kha_CompilerDefines.sys_g4 = "1";
 kha_CompilerDefines.js_es = "5";
+kha_CompilerDefines.tweenxcore = "1";
 kha_CompilerDefines["js-es5"] = "1";
 kha_CompilerDefines.js_es5 = "1";
 kha_CompilerDefines.sys_a2 = "1";
@@ -23325,8 +24119,8 @@ kha_Shaders.painter_colored_fragData = "s198:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWR
 kha_Shaders.painter_colored_vertData = "s331:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgZnJhZ21lbnRDb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_Shaders.painter_image_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
 kha_Shaders.painter_image_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
-kha_Shaders.painter_text_vertData = "s436:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgdGV4Q29vcmQgPSB0ZXhQb3NpdGlvbjsKICAgIGZyYWdtZW50Q29sb3IgPSB2ZXJ0ZXhDb2xvcjsKfQoK";
 kha_Shaders.painter_text_fragData = "s351:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWM0IGZyYWdtZW50Q29sb3I7CnZhcnlpbmcgaGlnaHAgdmVjMiB0ZXhDb29yZDsKCnZvaWQgbWFpbigpCnsKICAgIGdsX0ZyYWdEYXRhWzBdID0gdmVjNChmcmFnbWVudENvbG9yLnh5eiwgdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpLnggKiBmcmFnbWVudENvbG9yLncpOwp9Cgo";
+kha_Shaders.painter_text_vertData = "s436:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgdGV4Q29vcmQgPSB0ZXhQb3NpdGlvbjsKICAgIGZyYWdtZW50Q29sb3IgPSB2ZXJ0ZXhDb2xvcjsKfQoK";
 kha_Shaders.painter_video_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
 kha_Shaders.painter_video_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_System.renderListeners = [];
@@ -23480,6 +24274,7 @@ n4_NGame.useDoubleBuffering = true;
 n4_NGame.syncDrawUpdate = true;
 n4_NGame.worldBounds = new n4_math_NRect();
 n4_NGame.worldDivisions = 6;
+n4_input_NPressEventState.justPressedFrames = 1;
 n4_math_NMath.MIN_VALUE_FLOAT = 0.0000000000000001;
 n4_math_NMath.MAX_VALUE_FLOAT = 1.79e+308;
 n4_math_NMath.MIN_VALUE_INT = -2147483647;
@@ -23496,5 +24291,12 @@ n4_system_NLinkedList._NUM_CACHED_N_LIST = 0;
 n4_system_NQuadTree.A_LIST = 0;
 n4_system_NQuadTree.B_LIST = 1;
 n4_system_NQuadTree._NUM_CACHED_QUAD_TREES = 0;
+tweenxcore_Easing.PI = 3.1415926535897932384626433832795;
+tweenxcore_Easing.PI_H = 1.5707963267948966;
+tweenxcore_Easing.LN_2 = 0.6931471805599453;
+tweenxcore_Easing.LN_2_10 = 6.931471805599453;
+tweenxcore_Easing.overshoot = 1.70158;
+tweenxcore_Easing.amplitude = 1;
+tweenxcore_Easing.period = 0.0003;
 Main.main();
 })(typeof exports != "undefined" ? exports : typeof window != "undefined" ? window : typeof self != "undefined" ? self : this, typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
