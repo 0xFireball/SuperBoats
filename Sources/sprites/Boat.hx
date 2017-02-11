@@ -21,6 +21,7 @@ class Boat extends NSprite {
 		maxAngular = Math.PI;
 		angularDrag = Math.PI;
 		drag.set(24, 24);
+		elasticity = 0.3;
 		mass = 16000;
 	}
 

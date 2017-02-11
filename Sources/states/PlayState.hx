@@ -30,4 +30,10 @@ class PlayState extends NState implements IEmitterState {
 
 		super.create();
 	}
+
+	override public function update(dt:Float) {
+		NGame.collide(player, warships);
+
+		super.update(dt);
+	}
 }
