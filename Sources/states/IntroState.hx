@@ -17,10 +17,10 @@ class IntroState extends NState {
 			NEText.font = Registry.mainFont;
 		}
 		
-		var titleText = new NEText(20, 20, "SuperBoats", 20);
+		var titleText = new NEText(20, 20, "SuperBoats", 40);
 		add(titleText);
 
-		NGame.timers.setTimer(1500, function() {
+		NGame.timers.setTimer(400, function() {
 			NGame.switchState(new MenuState());
 		});
 
