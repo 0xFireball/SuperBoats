@@ -11,12 +11,12 @@ using tweenxcore.Tools;
 
 import sprites.DummyBoat;
 
-class MenuState extends NState {
+class MenuState extends NState implements IEmitterState {
 	private var dummyBoats:NTypedGroup<DummyBoat>;
 	private var creationFrame:Int = NGame.updateFrameCount;
 	private var titleText:NEText;
 	private var titleTextFinalCenter:Float;
-	public var emitter:NParticleEmitter;
+	public var emitter(default, null):NParticleEmitter;
 
 	override public function create() {
 		Registry.MS = this;

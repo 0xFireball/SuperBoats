@@ -29,10 +29,7 @@ class DummyBoat extends NSprite {
 			NColorUtil.randCol(0.2, 0.6, 0.8, 0.2), Math.random() * 1.0);
 		}
 
-		if (x < 0) x += NGame.width;
-		if (y < 0) y += NGame.height;
-		if (x > NGame.width) x %= NGame.width;
-		if (y > NGame.height) y %= NGame.height;
+		keepInBounds();
 
 		super.update(dt);
 	}
@@ -41,5 +38,12 @@ class DummyBoat extends NSprite {
 		acceleration.y = Math.random() * -90;
 		acceleration.rotate(new NPoint(0, 0), Math.random() * 360);
 		angularAcceleration = Math.random() * Math.PI / 20;
+	}
+
+	private function keepInBounds() {
+		if (x < 0) x += NGame.width;
+		if (y < 0) y += NGame.height;
+		if (x > NGame.width) x %= NGame.width;
+		if (y > NGame.height) y %= NGame.height;
 	}
 }

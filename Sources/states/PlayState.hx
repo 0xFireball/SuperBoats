@@ -6,10 +6,10 @@ import n4.effects.particles.NParticleEmitter;
 import sprites.PlayerBoat;
 import sprites.Warship;
 
-class PlayState extends NState {
+class PlayState extends NState implements IEmitterState {
 	public var player:PlayerBoat;
 	public var warships:NTypedGroup<Warship>;
-	public var emitter:NParticleEmitter;
+	public var emitter(default, null):NParticleEmitter;
 
 	override public function create() {
 		Registry.PS = this;
