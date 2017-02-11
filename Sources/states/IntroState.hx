@@ -35,6 +35,10 @@ class IntroState extends NState {
 		spinner.screenCenter(NAxes.XY);
 		add(spinner);
 
+		var pbt = new NEText(0, NGame.height * 0.65, "powered by n4 engine", 32);
+		pbt.screenCenter(NAxes.X);
+		add(pbt);
+
 		NGame.timers.setTimer(1400, function() {
 			NGame.switchState(new MenuState());
 		});

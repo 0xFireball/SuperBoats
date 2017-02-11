@@ -44,7 +44,6 @@ class MenuState extends NState {
 		var madeWithText = new NEText(0, 0, "made with n4 engine", 32);
 		madeWithText.x = NGame.width - madeWithText.width * 1.2;
 		madeWithText.y = NGame.height - madeWithText.height * 1.4;
-
 		add(madeWithText);
 	}
 
