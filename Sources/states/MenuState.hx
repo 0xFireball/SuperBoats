@@ -9,7 +9,7 @@ import n4.util.NAxes;
 
 class MenuState extends NState {
 	override public function create() {
-		var titleText = new NEText(NGame.width / 2, NGame.height * 0.2, "SuperBoats", 40);
+		var titleText = new NEText(NGame.width / 2, NGame.height * 0.2, "SuperBoats", 50);
 		titleText.screenCenter(NAxes.X);
 		add(titleText);
 	}
