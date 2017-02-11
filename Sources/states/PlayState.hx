@@ -23,6 +23,9 @@ class PlayState extends NState implements IEmitterState {
 		add(player);
 
 		warships = new NTypedGroup<Warship>();
+		var enemy = new Warship(Math.random() * NGame.width, Math.random() * NGame.height);
+		enemy.angle = Math.random() * Math.PI * 2;
+		warships.add(enemy);
 		add(warships);
 
 		super.create();

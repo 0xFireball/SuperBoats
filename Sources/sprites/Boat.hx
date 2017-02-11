@@ -9,6 +9,8 @@ import n4.util.NColorUtil;
 class Boat extends NSprite {
 	public var angularThrust(default, null):Float = 0.05 * Math.PI;
 	public var thrust(default, null):Float = 3.5;
+	public var sprayAmount(default, null):Int = 5;
+	public var spraySpread(default, null):Int = 40;
 	
 	private var wrapBounds:Bool = true;
 
@@ -18,7 +20,8 @@ class Boat extends NSprite {
 		maxVelocity.set(200, 200);
 		maxAngular = Math.PI;
 		angularDrag = Math.PI;
-		drag.set(15, 15);
+		drag.set(24, 24);
+		mass = 16000;
 	}
 
 	override public function update(dt:Float) {
@@ -32,9 +35,9 @@ class Boat extends NSprite {
 		particleTrailVector.rotate(new NPoint(0, 0), 180);
 		particleTrailVector.scale(0.7);
 
-		for (i in 0...5) {
+		for (i in 0...sprayAmount) {
 			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 10),
-				NParticleEmitter.velocitySpread(40, particleTrailVector.x, particleTrailVector.y),
+				NParticleEmitter.velocitySpread(spraySpread, particleTrailVector.x, particleTrailVector.y),
 			NColorUtil.randCol(0.2, 0.6, 0.8, 0.2), Math.random() * 1.0);
 		}
 	}

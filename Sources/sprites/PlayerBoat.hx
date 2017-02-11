@@ -10,8 +10,20 @@ import n4.NGame;
 class PlayerBoat extends Boat {
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
+		angularThrust = 0.05 * Math.PI;
+		thrust = 3.5;
 		wrapBounds = false;
-		makeGraphic(16, 36, Color.Blue);
+		mass = 8000;
+		sprayAmount = 8;
+		renderGraphic(16, 36, function (gpx) {
+			var ctx = gpx.g2;
+			ctx.begin();
+			ctx.color = Color.fromFloats(0.1, 0.3, 0.9);
+			ctx.fillRect(0, 0, width, height);
+			ctx.color = Color.fromFloats(0.1, 0.5, 0.9);
+			ctx.fillRect(width / 3, height * (3 / 4), width / 3, height / 4);
+			ctx.end();
+		}, "playerboat");
 	}
 
 	override public function update(dt:Float) {
