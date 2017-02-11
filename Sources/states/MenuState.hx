@@ -13,7 +13,9 @@ import sprites.DummyBoat;
 
 class MenuState extends NState {
 	private var dummyBoats:NTypedGroup<DummyBoat>;
+	private var creationFrame:Int = NGame.updateFrameCount;
 	private var titleText:NEText;
+	private var titleTextFinalCenter:Float;
 	public var emitter:NSquareParticleEmitter;
 
 	override public function create() {
@@ -32,6 +34,7 @@ class MenuState extends NState {
 
 		titleText = new NEText(0, NGame.height * 0.2, "SuperBoats", 50);
 		titleText.screenCenter(NAxes.X);
+		titleTextFinalCenter = titleText.x;
 		add(titleText);
 
 		var madeWithText = new NEText(0, 0, "made with n4 engine", 32);
@@ -42,6 +45,9 @@ class MenuState extends NState {
 	}
 
 	override public function update(dt:Float) {
+		var ttAnimProgress = (NGame.updateFrameCount - creationFrame) / 20;
+		if (ttAnimProgress <= 1) titleText.x = ttAnimProgress.backOut().lerp(0, titleTextFinalCenter);
+
 		if (NGame.updateFrameCount % NGame.targetFramerate * 6 == 0) {
 			dummyBoats.forEachActive(function (d) {
 				d.randomizeMotion();
