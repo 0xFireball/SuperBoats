@@ -22,7 +22,7 @@ class MenuState extends NState {
 		
 		// add dummy boats
 		dummyBoats = new NTypedGroup<DummyBoat>();
-		for (i in 0...10) {
+		for (i in 0...Std.int(Math.random() * 6) + 1) {
 			var dummyBoat = new DummyBoat(Math.random() * NGame.width, Math.random() * NGame.height);
 			dummyBoats.add(dummyBoat);
 		}
