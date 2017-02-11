@@ -5,7 +5,7 @@ import kha.Color;
 import n4.math.NPoint;
 import n4.NGame;
 import n4.entities.NSprite;
-import n4.effects.particles.NSquareParticleEmitter;
+import n4.effects.particles.NParticleEmitter;
 import n4.util.NColorUtil;
 
 class DummyBoat extends NSprite {
@@ -24,8 +24,8 @@ class DummyBoat extends NSprite {
 		particleTrailVector.scale(0.7);
 
 		for (i in 0...5) {
-			Registry.MS.emitter.emit(center.x, center.y, Std.int(Math.random() * 10),
-				NSquareParticleEmitter.velocitySpread(40, particleTrailVector.x, particleTrailVector.y),
+			Registry.MS.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 10),
+				NParticleEmitter.velocitySpread(40, particleTrailVector.x, particleTrailVector.y),
 			NColorUtil.randCol(0.2, 0.6, 0.8, 0.2), Math.random() * 1.0);
 		}
 

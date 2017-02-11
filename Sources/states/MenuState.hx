@@ -2,7 +2,7 @@ package states;
 
 import n4.NGame;
 import n4.group.NTypedGroup;
-import n4.effects.particles.NSquareParticleEmitter;
+import n4.effects.particles.NParticleEmitter;
 import n4.NState;
 import n4e.ui.NEText;
 import n4.util.NAxes;
@@ -16,12 +16,12 @@ class MenuState extends NState {
 	private var creationFrame:Int = NGame.updateFrameCount;
 	private var titleText:NEText;
 	private var titleTextFinalCenter:Float;
-	public var emitter:NSquareParticleEmitter;
+	public var emitter:NParticleEmitter;
 
 	override public function create() {
 		Registry.MS = this;
 		
-		emitter = new NSquareParticleEmitter(200);
+		emitter = new NParticleEmitter(200);
 		add(emitter);
 
 		// add dummy boats
