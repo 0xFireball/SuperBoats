@@ -67,7 +67,7 @@ class Warship extends Boat {
 		for (i in 0...19) {
 			Registry.currentEmitterState.emitter.emitSquare(x, y, 6,
 				NParticleEmitter.velocitySpread(45, vx / 4, vy / 4),
-				NColorUtil.randCol(0.5, 0.5, 0.5), 0.6);
+				NColorUtil.randCol(0.5, 0.5, 0.5), 0.8);
 		}
 	}
 

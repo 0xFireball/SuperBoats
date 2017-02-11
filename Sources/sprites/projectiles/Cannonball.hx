@@ -25,7 +25,7 @@ class Cannonball extends Projectile {
 		for (i in 0...15) {
 			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 6),
 				NParticleEmitter.velocitySpread(10, particleTrailVector.x, particleTrailVector.y),
-			NColorUtil.randCol(0.5, 0.1, 0.1, 0.1), Math.random() * 0.7);
+			NColorUtil.randCol(0.5, 0.1, 0.1, 0.1), Math.random() * 0.7 + 1);
 		}
 
 		super.update(dt);
@@ -35,7 +35,7 @@ class Cannonball extends Projectile {
 		for (i in 0...35) {
 			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 8 + 4),
 				NParticleEmitter.velocitySpread(50),
-			NColorUtil.randCol(0.7, 0.2, 0.2, 0.2), Math.random() * 1.8);
+			NColorUtil.randCol(0.7, 0.2, 0.2, 0.2), Math.random() * 1.8 + 1);
 		}
 		super.explode();
 	}
