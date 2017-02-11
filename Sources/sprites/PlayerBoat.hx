@@ -43,7 +43,7 @@ class PlayerBoat extends Boat {
 			angularVelocity += angularThrust;
 		}
 		var thrustVector = new NVector(0, 0);
-		drag.set(20, 20);
+		drag.set(15, 15);
 		if (up) {
 			thrustVector.add(0, -thrust);
 		} else if (down) {

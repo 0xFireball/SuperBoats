@@ -1,5 +1,6 @@
 package states;
 
+import n4.NGame;
 import n4.NState;
 import n4.group.NTypedGroup;
 import n4.effects.particles.NParticleEmitter;
@@ -17,7 +18,8 @@ class PlayState extends NState implements IEmitterState {
 		emitter = new NParticleEmitter(200);
 		add(emitter);
 
-		player = new PlayerBoat();
+		player = new PlayerBoat(Math.random() * NGame.width, Math.random() * NGame.height);
+		player.angle = Math.random() * Math.PI * 2;
 		add(player);
 
 		warships = new NTypedGroup<Warship>();

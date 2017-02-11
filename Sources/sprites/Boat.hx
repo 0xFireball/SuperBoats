@@ -5,7 +5,7 @@ import n4.entities.NSprite;
 
 class Boat extends NSprite {
 	public var angularThrust(default, null):Float = 0.05 * Math.PI;
-	public var thrust(default, null):Float = 20;
+	public var thrust(default, null):Float = 3.5;
 	
 	private var wrapBounds:Bool = true;
 
@@ -15,7 +15,7 @@ class Boat extends NSprite {
 		maxVelocity.set(200, 200);
 		maxAngular = Math.PI * 4;
 		angularDrag = Math.PI;
-		drag.set(20, 20);
+		drag.set(15, 15);
 	}
 
 	override public function update(dt:Float) {
