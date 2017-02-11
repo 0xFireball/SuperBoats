@@ -1,7 +1,10 @@
 package sprites;
 
 import n4.NGame;
+import n4.math.NPoint;
+import n4.effects.particles.NParticleEmitter;
 import n4.entities.NSprite;
+import n4.util.NColorUtil;
 
 class Boat extends NSprite {
 	public var angularThrust(default, null):Float = 0.05 * Math.PI;
@@ -13,14 +16,27 @@ class Boat extends NSprite {
 		super(X, Y);
 
 		maxVelocity.set(200, 200);
-		maxAngular = Math.PI * 4;
+		maxAngular = Math.PI;
 		angularDrag = Math.PI;
 		drag.set(15, 15);
 	}
 
 	override public function update(dt:Float) {
-		keepInBounds();	
+		keepInBounds();
+		drawSpray();
 		super.update(dt);
+	}
+
+	private function drawSpray() {
+		var particleTrailVector = velocity.toVector(); // duplicate velocity vector
+		particleTrailVector.rotate(new NPoint(0, 0), 180);
+		particleTrailVector.scale(0.7);
+
+		for (i in 0...5) {
+			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 10),
+				NParticleEmitter.velocitySpread(40, particleTrailVector.x, particleTrailVector.y),
+			NColorUtil.randCol(0.2, 0.6, 0.8, 0.2), Math.random() * 1.0);
+		}
 	}
 
 	private function keepInBounds() {
