@@ -23,7 +23,7 @@ class Cannonball extends Projectile {
 		particleTrailVector.scale(0.7);
 		// emit particles
 		for (i in 0...15) {
-			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 5),
+			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 6),
 				NParticleEmitter.velocitySpread(10, particleTrailVector.x, particleTrailVector.y),
 			NColorUtil.randCol(0.5, 0.1, 0.1, 0.1), Math.random() * 0.7);
 		}
@@ -33,8 +33,8 @@ class Cannonball extends Projectile {
 
 	override public function explode() {
 		for (i in 0...35) {
-			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 4 + 4),
-				NParticleEmitter.velocitySpread(40),
+			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 8 + 4),
+				NParticleEmitter.velocitySpread(50),
 			NColorUtil.randCol(0.7, 0.2, 0.2, 0.2), Math.random() * 1.8);
 		}
 		super.explode();
