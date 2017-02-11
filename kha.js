@@ -203,6 +203,9 @@ Reflect.isFunction = function(f) {
 var Registry = function() { };
 $hxClasses["Registry"] = Registry;
 Registry.__name__ = true;
+Registry.get_currentEmitterState = function() {
+	return js_Boot.__cast(n4_NGame.currentState , states_IEmitterState);
+};
 var Std = function() { };
 $hxClasses["Std"] = Std;
 Std.__name__ = true;
@@ -3708,13 +3711,13 @@ $hxClasses["kha.Shaders"] = kha_Shaders;
 kha_Shaders.__name__ = true;
 kha_Shaders.init = function() {
 	kha_Shaders.painter_colored_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_colored_fragData"))),"painter_colored_frag");
-	kha_Shaders.painter_colored_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_colored_vertData"))),"painter_colored_vert");
 	kha_Shaders.painter_image_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_fragData"))),"painter_image_frag");
+	kha_Shaders.painter_colored_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_colored_vertData"))),"painter_colored_vert");
 	kha_Shaders.painter_image_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_vertData"))),"painter_image_vert");
 	kha_Shaders.painter_text_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_vertData"))),"painter_text_vert");
 	kha_Shaders.painter_text_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_fragData"))),"painter_text_frag");
-	kha_Shaders.painter_video_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_vertData"))),"painter_video_vert");
 	kha_Shaders.painter_video_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_fragData"))),"painter_video_frag");
+	kha_Shaders.painter_video_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_vertData"))),"painter_video_vert");
 };
 var kha_Sound = function() {
 };
@@ -21592,15 +21595,15 @@ n4_effects_particles_NParticle.prototype = $extend(n4_entities_NSprite.prototype
 	}
 	,__class__: n4_effects_particles_NParticle
 });
-var n4_effects_particles_NSquareParticleEmitter = function(MaxSize) {
+var n4_effects_particles_NParticleEmitter = function(MaxSize) {
 	if(MaxSize == null) {
 		MaxSize = 40;
 	}
 	n4_group_NTypedGroup.call(this,MaxSize);
 };
-$hxClasses["n4.effects.particles.NSquareParticleEmitter"] = n4_effects_particles_NSquareParticleEmitter;
-n4_effects_particles_NSquareParticleEmitter.__name__ = true;
-n4_effects_particles_NSquareParticleEmitter.velocitySpread = function(Radius,XOffset,YOffset) {
+$hxClasses["n4.effects.particles.NParticleEmitter"] = n4_effects_particles_NParticleEmitter;
+n4_effects_particles_NParticleEmitter.__name__ = true;
+n4_effects_particles_NParticleEmitter.velocitySpread = function(Radius,XOffset,YOffset) {
 	if(YOffset == null) {
 		YOffset = 0;
 	}
@@ -21612,9 +21615,9 @@ n4_effects_particles_NSquareParticleEmitter.velocitySpread = function(Radius,XOf
 	var r = Radius * (u > 1 ? 2 - u : u);
 	return new n4_math_NPoint(Math.cos(theta) * r + XOffset,Math.sin(theta) * r + YOffset);
 };
-n4_effects_particles_NSquareParticleEmitter.__super__ = n4_group_NTypedGroup;
-n4_effects_particles_NSquareParticleEmitter.prototype = $extend(n4_group_NTypedGroup.prototype,{
-	emit: function(X,Y,Size,Velocity,PColor,Life) {
+n4_effects_particles_NParticleEmitter.__super__ = n4_group_NTypedGroup;
+n4_effects_particles_NParticleEmitter.prototype = $extend(n4_group_NTypedGroup.prototype,{
+	emitSquare: function(X,Y,Size,Velocity,PColor,Life) {
 		if(Life == null) {
 			Life = 0;
 		}
@@ -21622,11 +21625,24 @@ n4_effects_particles_NSquareParticleEmitter.prototype = $extend(n4_group_NTypedG
 		Y -= Size / 2;
 		var particle = new n4_effects_particles_NParticle(X,Y,PColor,Life);
 		particle.makeGraphic(Size,Size,PColor);
-		particle.velocity.set_x(Velocity.x);
-		particle.velocity.set_y(Velocity.y);
-		this.add(particle);
+		this.emitInternal(particle,Velocity);
 	}
-	,__class__: n4_effects_particles_NSquareParticleEmitter
+	,emitCustom: function(X,Y,Width,Height,Render,Key,Velocity,PColor,Life) {
+		if(Life == null) {
+			Life = 0;
+		}
+		X -= Width / 2;
+		Y -= Height / 2;
+		var particle = new n4_effects_particles_NParticle(X,Y,PColor,Life);
+		particle.renderGraphic(Width,Height,Render,Key);
+		this.emitInternal(particle,Velocity);
+	}
+	,emitInternal: function(Particle,Velocity) {
+		Particle.velocity.set_x(Velocity.x);
+		Particle.velocity.set_y(Velocity.y);
+		this.add(Particle);
+	}
+	,__class__: n4_effects_particles_NParticleEmitter
 });
 var n4_events_NTimer = function(TriggerTime,Callback) {
 	this.triggerTime = TriggerTime;
@@ -23117,6 +23133,79 @@ n4e_ui_NEText.__super__ = n4_entities_NSprite;
 n4e_ui_NEText.prototype = $extend(n4_entities_NSprite.prototype,{
 	__class__: n4e_ui_NEText
 });
+var sprites_Boat = function(X,Y) {
+	if(Y == null) {
+		Y = 0;
+	}
+	if(X == null) {
+		X = 0;
+	}
+	this.wrapBounds = true;
+	this.thrust = 3.5;
+	this.angularThrust = 0.05 * Math.PI;
+	n4_entities_NSprite.call(this,X,Y);
+	this.maxVelocity.set(200,200);
+	this.maxAngular = Math.PI;
+	this.angularDrag = Math.PI;
+	this.drag.set(15,15);
+};
+$hxClasses["sprites.Boat"] = sprites_Boat;
+sprites_Boat.__name__ = true;
+sprites_Boat.__super__ = n4_entities_NSprite;
+sprites_Boat.prototype = $extend(n4_entities_NSprite.prototype,{
+	angularThrust: null
+	,thrust: null
+	,wrapBounds: null
+	,update: function(dt) {
+		this.keepInBounds();
+		this.drawSpray();
+		n4_entities_NSprite.prototype.update.call(this,dt);
+	}
+	,drawSpray: function() {
+		var particleTrailVector = this.velocity.toVector();
+		particleTrailVector.rotate(new n4_math_NPoint(0,0),180);
+		particleTrailVector.scale(0.7);
+		var _g = 0;
+		while(_g < 5) {
+			++_g;
+			Registry.get_currentEmitterState().emitter.emitSquare(this.get_center().x,this.get_center().y,Math.random() * 10 | 0,n4_effects_particles_NParticleEmitter.velocitySpread(40,particleTrailVector.x,particleTrailVector.y),n4_util_NColorUtil.randCol(0.2,0.6,0.8,0.2),Math.random());
+		}
+	}
+	,keepInBounds: function() {
+		if(this.wrapBounds) {
+			if(this.x < 0) {
+				var _g = this;
+				_g.set_x(_g.x + n4_NGame.width);
+			}
+			if(this.y < 0) {
+				var _g1 = this;
+				_g1.set_y(_g1.y + n4_NGame.height);
+			}
+			if(this.x > n4_NGame.width) {
+				var _g2 = this;
+				_g2.set_x(_g2.x % n4_NGame.width);
+			}
+			if(this.y > n4_NGame.height) {
+				var _g3 = this;
+				_g3.set_y(_g3.y % n4_NGame.height);
+			}
+		} else {
+			if(this.x < this.get_width() / 2) {
+				this.set_x(this.get_width() / 2);
+			}
+			if(this.y < this.get_height() / 2) {
+				this.set_y(this.get_height() / 2);
+			}
+			if(this.x > n4_NGame.width - this.get_width()) {
+				this.set_x(n4_NGame.width - this.get_width());
+			}
+			if(this.y > n4_NGame.height - this.get_height()) {
+				this.set_y(n4_NGame.height - this.get_height());
+			}
+		}
+	}
+	,__class__: sprites_Boat
+});
 var sprites_DummyBoat = function(X,Y) {
 	if(Y == null) {
 		Y = 0;
@@ -23141,24 +23230,9 @@ sprites_DummyBoat.prototype = $extend(n4_entities_NSprite.prototype,{
 		var _g = 0;
 		while(_g < 5) {
 			++_g;
-			Registry.MS.emitter.emit(this.get_center().x,this.get_center().y,Math.random() * 10 | 0,n4_effects_particles_NSquareParticleEmitter.velocitySpread(40,particleTrailVector.x,particleTrailVector.y),n4_util_NColorUtil.randCol(0.2,0.6,0.8,0.2),Math.random());
+			Registry.MS.emitter.emitSquare(this.get_center().x,this.get_center().y,Math.random() * 10 | 0,n4_effects_particles_NParticleEmitter.velocitySpread(40,particleTrailVector.x,particleTrailVector.y),n4_util_NColorUtil.randCol(0.2,0.6,0.8,0.2),Math.random());
 		}
-		if(this.x < 0) {
-			var _g1 = this;
-			_g1.set_x(_g1.x + n4_NGame.width);
-		}
-		if(this.y < 0) {
-			var _g2 = this;
-			_g2.set_y(_g2.y + n4_NGame.height);
-		}
-		if(this.x > n4_NGame.width) {
-			var _g3 = this;
-			_g3.set_x(_g3.x % n4_NGame.width);
-		}
-		if(this.y > n4_NGame.height) {
-			var _g4 = this;
-			_g4.set_y(_g4.y % n4_NGame.height);
-		}
+		this.keepInBounds();
 		n4_entities_NSprite.prototype.update.call(this,dt);
 	}
 	,randomizeMotion: function() {
@@ -23166,8 +23240,107 @@ sprites_DummyBoat.prototype = $extend(n4_entities_NSprite.prototype,{
 		this.acceleration.rotate(new n4_math_NPoint(0,0),Math.random() * 360);
 		this.angularAcceleration = Math.random() * Math.PI / 20;
 	}
+	,keepInBounds: function() {
+		if(this.x < 0) {
+			var _g = this;
+			_g.set_x(_g.x + n4_NGame.width);
+		}
+		if(this.y < 0) {
+			var _g1 = this;
+			_g1.set_y(_g1.y + n4_NGame.height);
+		}
+		if(this.x > n4_NGame.width) {
+			var _g2 = this;
+			_g2.set_x(_g2.x % n4_NGame.width);
+		}
+		if(this.y > n4_NGame.height) {
+			var _g3 = this;
+			_g3.set_y(_g3.y % n4_NGame.height);
+		}
+	}
 	,__class__: sprites_DummyBoat
 });
+var sprites_PlayerBoat = function(X,Y) {
+	if(Y == null) {
+		Y = 0;
+	}
+	if(X == null) {
+		X = 0;
+	}
+	sprites_Boat.call(this,X,Y);
+	this.wrapBounds = false;
+	this.makeGraphic(16,36,-16776961);
+};
+$hxClasses["sprites.PlayerBoat"] = sprites_PlayerBoat;
+sprites_PlayerBoat.__name__ = true;
+sprites_PlayerBoat.__super__ = sprites_Boat;
+sprites_PlayerBoat.prototype = $extend(sprites_Boat.prototype,{
+	update: function(dt) {
+		this.movement();
+		sprites_Boat.prototype.update.call(this,dt);
+	}
+	,movement: function() {
+		var left = false;
+		var up = false;
+		var right = false;
+		var down = false;
+		left = n4_NGame.keys.pressed(["A","LEFT"]);
+		up = n4_NGame.keys.pressed(["W","UP"]);
+		right = n4_NGame.keys.pressed(["D","RIGHT"]);
+		down = n4_NGame.keys.pressed(["S","DOWN"]);
+		if(left && right) {
+			right = false;
+			left = false;
+		}
+		if(up && down) {
+			down = false;
+			up = false;
+		}
+		var facingAngle = this.angle;
+		if(left) {
+			this.angularVelocity -= this.angularThrust;
+		} else if(right) {
+			this.angularVelocity += this.angularThrust;
+		}
+		var thrustVector = new n4_math_NVector(0,0);
+		this.drag.set(15,15);
+		if(up) {
+			var Y = -this.thrust;
+			var _g = thrustVector;
+			_g.set_x(_g.x);
+			var _g1 = thrustVector;
+			_g1.set_y(_g1.y + Y);
+		} else if(down) {
+			this.drag.scale(6);
+		}
+		thrustVector.rotate(new n4_math_NPoint(0,0),facingAngle * (180 / Math.PI));
+		this.velocity.addPoint(thrustVector);
+	}
+	,__class__: sprites_PlayerBoat
+});
+var sprites_Warship = function(X,Y) {
+	if(Y == null) {
+		Y = 0;
+	}
+	if(X == null) {
+		X = 0;
+	}
+	sprites_Boat.call(this,X,Y);
+	this.makeGraphic(30,65,-65536);
+};
+$hxClasses["sprites.Warship"] = sprites_Warship;
+sprites_Warship.__name__ = true;
+sprites_Warship.__super__ = sprites_Boat;
+sprites_Warship.prototype = $extend(sprites_Boat.prototype,{
+	__class__: sprites_Warship
+});
+var states_IEmitterState = function() { };
+$hxClasses["states.IEmitterState"] = states_IEmitterState;
+states_IEmitterState.__name__ = true;
+states_IEmitterState.prototype = {
+	emitter: null
+	,__class__: states_IEmitterState
+};
 var states_IntroState = function() {
 	n4_NState.call(this);
 };
@@ -23210,6 +23383,7 @@ var states_MenuState = function() {
 };
 $hxClasses["states.MenuState"] = states_MenuState;
 states_MenuState.__name__ = true;
+states_MenuState.__interfaces__ = [states_IEmitterState];
 states_MenuState.__super__ = n4_NState;
 states_MenuState.prototype = $extend(n4_NState.prototype,{
 	dummyBoats: null
@@ -23219,6 +23393,8 @@ states_MenuState.prototype = $extend(n4_NState.prototype,{
 	,emitter: null
 	,create: function() {
 		Registry.MS = this;
+		this.emitter = new n4_effects_particles_NParticleEmitter(200);
+		this.add(this.emitter);
 		this.dummyBoats = new n4_group_NTypedGroup();
 		var _g1 = 0;
 		var _g = (Math.random() * 6 | 0) + 1;
@@ -23228,8 +23404,6 @@ states_MenuState.prototype = $extend(n4_NState.prototype,{
 			this.dummyBoats.add(dummyBoat);
 		}
 		this.add(this.dummyBoats);
-		this.emitter = new n4_effects_particles_NSquareParticleEmitter(200);
-		this.add(this.emitter);
 		this.titleText = new n4e_ui_NEText(0,n4_NGame.height * 0.2,"SuperBoats",50);
 		this.titleText.screenCenter(n4_util_NAxes.X);
 		this.titleTextFinalCenter = this.titleText.x;
@@ -23279,9 +23453,24 @@ var states_PlayState = function() {
 };
 $hxClasses["states.PlayState"] = states_PlayState;
 states_PlayState.__name__ = true;
+states_PlayState.__interfaces__ = [states_IEmitterState];
 states_PlayState.__super__ = n4_NState;
 states_PlayState.prototype = $extend(n4_NState.prototype,{
-	__class__: states_PlayState
+	player: null
+	,warships: null
+	,emitter: null
+	,create: function() {
+		Registry.PS = this;
+		this.emitter = new n4_effects_particles_NParticleEmitter(200);
+		this.add(this.emitter);
+		this.player = new sprites_PlayerBoat(Math.random() * n4_NGame.width,Math.random() * n4_NGame.height);
+		this.player.set_angle(Math.random() * Math.PI * 2);
+		this.add(this.player);
+		this.warships = new n4_group_NTypedGroup();
+		this.add(this.warships);
+		n4_NState.prototype.create.call(this);
+	}
+	,__class__: states_PlayState
 });
 var tweenxcore_Easing = function() { };
 $hxClasses["tweenxcore.Easing"] = tweenxcore_Easing;
@@ -24119,13 +24308,13 @@ kha_Scheduler.DIF_COUNT = 3;
 kha_Scheduler.maxframetime = 0.5;
 kha_Scheduler.startTime = 0;
 kha_Shaders.painter_colored_fragData = "s198:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdmFyeWluZyBoaWdocCB2ZWM0IGZyYWdtZW50Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9GcmFnRGF0YVswXSA9IGZyYWdtZW50Q29sb3I7Cn0KCg";
-kha_Shaders.painter_colored_vertData = "s331:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgZnJhZ21lbnRDb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_Shaders.painter_image_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
+kha_Shaders.painter_colored_vertData = "s331:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgZnJhZ21lbnRDb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_Shaders.painter_image_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_Shaders.painter_text_vertData = "s436:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgdGV4Q29vcmQgPSB0ZXhQb3NpdGlvbjsKICAgIGZyYWdtZW50Q29sb3IgPSB2ZXJ0ZXhDb2xvcjsKfQoK";
 kha_Shaders.painter_text_fragData = "s351:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWM0IGZyYWdtZW50Q29sb3I7CnZhcnlpbmcgaGlnaHAgdmVjMiB0ZXhDb29yZDsKCnZvaWQgbWFpbigpCnsKICAgIGdsX0ZyYWdEYXRhWzBdID0gdmVjNChmcmFnbWVudENvbG9yLnh5eiwgdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpLnggKiBmcmFnbWVudENvbG9yLncpOwp9Cgo";
-kha_Shaders.painter_video_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_Shaders.painter_video_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
+kha_Shaders.painter_video_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_System.renderListeners = [];
 kha_System.foregroundListeners = [];
 kha_System.resumeListeners = [];
