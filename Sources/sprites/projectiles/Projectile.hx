@@ -20,4 +20,15 @@ class Projectile extends NSprite {
 	public function explode() {
 		this.destroy();
 	}
+
+	override public function update(dt:Float) {
+		checkBounds();
+		super.update(dt);
+	}
+
+	private function checkBounds() {
+		if (x < width * 2 || y < height * 2 || x > NGame.width + width * 2 || y > NGame.height + height * 2) {
+			destroy();
+		}
+	}
 }
