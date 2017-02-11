@@ -3711,13 +3711,13 @@ $hxClasses["kha.Shaders"] = kha_Shaders;
 kha_Shaders.__name__ = true;
 kha_Shaders.init = function() {
 	kha_Shaders.painter_colored_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_colored_fragData"))),"painter_colored_frag");
+	kha_Shaders.painter_image_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_vertData"))),"painter_image_vert");
 	kha_Shaders.painter_image_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_fragData"))),"painter_image_frag");
 	kha_Shaders.painter_colored_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_colored_vertData"))),"painter_colored_vert");
-	kha_Shaders.painter_image_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_vertData"))),"painter_image_vert");
-	kha_Shaders.painter_text_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_vertData"))),"painter_text_vert");
 	kha_Shaders.painter_text_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_fragData"))),"painter_text_frag");
-	kha_Shaders.painter_video_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_fragData"))),"painter_video_frag");
 	kha_Shaders.painter_video_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_vertData"))),"painter_video_vert");
+	kha_Shaders.painter_video_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_fragData"))),"painter_video_frag");
+	kha_Shaders.painter_text_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_vertData"))),"painter_text_vert");
 };
 var kha_Sound = function() {
 };
@@ -23141,13 +23141,17 @@ var sprites_Boat = function(X,Y) {
 		X = 0;
 	}
 	this.wrapBounds = true;
+	this.spraySpread = 40;
+	this.sprayAmount = 5;
 	this.thrust = 3.5;
 	this.angularThrust = 0.05 * Math.PI;
 	n4_entities_NSprite.call(this,X,Y);
 	this.maxVelocity.set(200,200);
 	this.maxAngular = Math.PI;
 	this.angularDrag = Math.PI;
-	this.drag.set(15,15);
+	this.drag.set(24,24);
+	this.elasticity = 0.3;
+	this.mass = 16000;
 };
 $hxClasses["sprites.Boat"] = sprites_Boat;
 sprites_Boat.__name__ = true;
@@ -23155,6 +23159,8 @@ sprites_Boat.__super__ = n4_entities_NSprite;
 sprites_Boat.prototype = $extend(n4_entities_NSprite.prototype,{
 	angularThrust: null
 	,thrust: null
+	,sprayAmount: null
+	,spraySpread: null
 	,wrapBounds: null
 	,update: function(dt) {
 		this.keepInBounds();
@@ -23165,10 +23171,11 @@ sprites_Boat.prototype = $extend(n4_entities_NSprite.prototype,{
 		var particleTrailVector = this.velocity.toVector();
 		particleTrailVector.rotate(new n4_math_NPoint(0,0),180);
 		particleTrailVector.scale(0.7);
-		var _g = 0;
-		while(_g < 5) {
-			++_g;
-			Registry.get_currentEmitterState().emitter.emitSquare(this.get_center().x,this.get_center().y,Math.random() * 10 | 0,n4_effects_particles_NParticleEmitter.velocitySpread(40,particleTrailVector.x,particleTrailVector.y),n4_util_NColorUtil.randCol(0.2,0.6,0.8,0.2),Math.random());
+		var _g1 = 0;
+		var _g = this.sprayAmount;
+		while(_g1 < _g) {
+			++_g1;
+			Registry.PS.lowerEmitter.emitSquare(this.get_center().x,this.get_center().y,Math.random() * 10 | 0,n4_effects_particles_NParticleEmitter.velocitySpread(this.spraySpread,particleTrailVector.x,particleTrailVector.y),n4_util_NColorUtil.randCol(0.2,0.6,0.8,0.2),Math.random());
 		}
 	}
 	,keepInBounds: function() {
@@ -23267,9 +23274,22 @@ var sprites_PlayerBoat = function(X,Y) {
 	if(X == null) {
 		X = 0;
 	}
+	var _gthis = this;
 	sprites_Boat.call(this,X,Y);
+	this.angularThrust = 0.05 * Math.PI;
+	this.thrust = 3.5;
 	this.wrapBounds = false;
-	this.makeGraphic(16,36,-16776961);
+	this.mass = 8000;
+	this.sprayAmount = 8;
+	this.renderGraphic(16,36,function(gpx) {
+		var ctx = gpx.get_g2();
+		ctx.begin();
+		ctx.set_color(kha__$Color_Color_$Impl_$.fromFloats(0.1,0.3,0.9));
+		ctx.fillRect(0,0,_gthis.get_width(),_gthis.get_height());
+		ctx.set_color(kha__$Color_Color_$Impl_$.fromFloats(0.1,0.5,0.9));
+		ctx.fillRect(_gthis.get_width() / 3,_gthis.get_height() * 0.75,_gthis.get_width() / 3,_gthis.get_height() / 4);
+		ctx.end();
+	},"playerboat");
 };
 $hxClasses["sprites.PlayerBoat"] = sprites_PlayerBoat;
 sprites_PlayerBoat.__name__ = true;
@@ -23325,14 +23345,173 @@ var sprites_Warship = function(X,Y) {
 	if(X == null) {
 		X = 0;
 	}
+	this.attackCount = 0;
+	this.attackTimer = 0;
 	sprites_Boat.call(this,X,Y);
+	this.angularThrust = 0.03 * Math.PI;
+	this.thrust = 0.5;
+	this.wrapBounds = false;
+	this.mass = 84000;
+	this.sprayAmount = 20;
+	this.spraySpread = 80;
 	this.makeGraphic(30,65,-65536);
 };
 $hxClasses["sprites.Warship"] = sprites_Warship;
 sprites_Warship.__name__ = true;
 sprites_Warship.__super__ = sprites_Boat;
 sprites_Warship.prototype = $extend(sprites_Boat.prototype,{
-	__class__: sprites_Warship
+	attackTimer: null
+	,attackCount: null
+	,update: function(dt) {
+		this.movement();
+		this.attackTimer += dt;
+		if(this.attackTimer > sprites_Warship.attackTime) {
+			this.attackPlayer();
+			++this.attackCount;
+			this.attackTimer = 0;
+		}
+		sprites_Boat.prototype.update.call(this,dt);
+	}
+	,attackPlayer: function() {
+		if(this.attackCount % 3 == 0) {
+			var projectile = null;
+			projectile = new sprites_projectiles_Cannonball(this.x,this.y);
+			var bulletSp = projectile.movementSpeed;
+			var player = Registry.PS.player;
+			var dx = this.x + this.get_width() / 2 - (player.x + player.get_width() / 2);
+			var dy = this.y + this.get_height() / 2 - (player.y + player.get_height() / 2);
+			var m = -Math.sqrt(dx * dx + dy * dy);
+			this.shootProjectile(projectile,dx * bulletSp / m,dy * bulletSp / m);
+		}
+	}
+	,shootProjectile: function(pj,vx,vy) {
+		pj.velocity.set(vx,vy);
+		Registry.PS.projectiles.add(pj);
+		var recoilSpeed = pj.get_momentum() / this.mass;
+		var recoilVelocity = new n4_math_NVector(pj.velocity.x,pj.velocity.y).normalize().scale(-recoilSpeed);
+		var _g = this.velocity;
+		_g.set_x(_g.x + recoilVelocity.x);
+		var _g1 = this.velocity;
+		_g1.set_y(_g1.y + recoilVelocity.y);
+		if(this.x > n4_NGame.width) {
+			this.set_x(this.x % n4_NGame.width);
+		}
+		if(this.y > n4_NGame.height) {
+			this.set_y(this.y % n4_NGame.height);
+		}
+		if(this.x < 0) {
+			var _g2 = this;
+			_g2.set_x(_g2.x + n4_NGame.width);
+		}
+		if(this.y < 0) {
+			var _g3 = this;
+			_g3.set_y(_g3.y + n4_NGame.height);
+		}
+		var _g4 = 0;
+		while(_g4 < 14) {
+			++_g4;
+			Registry.get_currentEmitterState().emitter.emitSquare(this.x,this.y,6,n4_effects_particles_NParticleEmitter.velocitySpread(45,vx / 4,vy / 4),n4_util_NColorUtil.randCol(0.5,0.5,0.5),0.8);
+		}
+	}
+	,movement: function() {
+		var left = false;
+		var up = false;
+		var right = false;
+		var facingAngle = this.angle;
+		if(this.x < n4_NGame.width / 4 || this.x > n4_NGame.width * 0.75 || this.y < n4_NGame.height / 4 || this.y > n4_NGame.height * 0.75) {
+			var fieldCenter = new n4_math_NVector(n4_NGame.width / 2,n4_NGame.height / 2);
+			var nv = new n4_math_NVector(this.x,this.y).clone();
+			nv.subtractPoint(fieldCenter);
+			var angleToCenter = new n4_math_NVector(this.x,this.y).angleBetween(fieldCenter) * (Math.PI / 180);
+			if(Math.abs(facingAngle - angleToCenter) > Math.PI / 8) {
+				if(facingAngle < angleToCenter) {
+					right = true;
+				} else if(facingAngle > angleToCenter) {
+					left = true;
+				}
+			}
+			if(Math.sqrt(nv.x * nv.x + nv.y * nv.y) > Math.sqrt(n4_NGame.width * n4_NGame.width + n4_NGame.height * n4_NGame.height) / 4) {
+				up = true;
+			}
+		}
+		if(left && right) {
+			right = false;
+			left = false;
+		}
+		if(left) {
+			this.angularVelocity -= this.angularThrust;
+		} else if(right) {
+			this.angularVelocity += this.angularThrust;
+		}
+		var thrustVector = new n4_math_NVector(0,0);
+		this.drag.set(15,15);
+		if(up) {
+			var Y = -this.thrust;
+			var _g = thrustVector;
+			_g.set_x(_g.x);
+			var _g1 = thrustVector;
+			_g1.set_y(_g1.y + Y);
+		}
+		thrustVector.rotate(new n4_math_NPoint(0,0),facingAngle * (180 / Math.PI));
+		this.velocity.addPoint(thrustVector);
+	}
+	,__class__: sprites_Warship
+});
+var sprites_projectiles_Projectile = function(X,Y) {
+	if(Y == null) {
+		Y = 0;
+	}
+	if(X == null) {
+		X = 0;
+	}
+	this.movementSpeed = 100;
+	n4_entities_NSprite.call(this,X,Y);
+};
+$hxClasses["sprites.projectiles.Projectile"] = sprites_projectiles_Projectile;
+sprites_projectiles_Projectile.__name__ = true;
+sprites_projectiles_Projectile.__super__ = n4_entities_NSprite;
+sprites_projectiles_Projectile.prototype = $extend(n4_entities_NSprite.prototype,{
+	movementSpeed: null
+	,explode: function() {
+		this.destroy();
+	}
+	,__class__: sprites_projectiles_Projectile
+});
+var sprites_projectiles_Cannonball = function(X,Y) {
+	if(Y == null) {
+		Y = 0;
+	}
+	if(X == null) {
+		X = 0;
+	}
+	sprites_projectiles_Projectile.call(this,X,Y);
+	this.movementSpeed = 180;
+	this.makeGraphic(8,8,kha__$Color_Color_$Impl_$.fromFloats(0.6,0.6,0.6));
+};
+$hxClasses["sprites.projectiles.Cannonball"] = sprites_projectiles_Cannonball;
+sprites_projectiles_Cannonball.__name__ = true;
+sprites_projectiles_Cannonball.__super__ = sprites_projectiles_Projectile;
+sprites_projectiles_Cannonball.prototype = $extend(sprites_projectiles_Projectile.prototype,{
+	update: function(dt) {
+		var particleTrailVector = this.velocity.toVector();
+		particleTrailVector.rotate(new n4_math_NPoint(0,0),180);
+		particleTrailVector.scale(0.7);
+		var _g = 0;
+		while(_g < 5) {
+			++_g;
+			Registry.get_currentEmitterState().emitter.emitSquare(this.get_center().x,this.get_center().y,Math.random() * 6 | 0,n4_effects_particles_NParticleEmitter.velocitySpread(40,particleTrailVector.x,particleTrailVector.y),n4_util_NColorUtil.randCol(0.5,0.1,0.1,0.1),0.7);
+		}
+		sprites_projectiles_Projectile.prototype.update.call(this,dt);
+	}
+	,explode: function() {
+		var _g = 0;
+		while(_g < 25) {
+			++_g;
+			Registry.get_currentEmitterState().emitter.emitSquare(this.get_center().x,this.get_center().y,Math.random() * 8 + 4 | 0,n4_effects_particles_NParticleEmitter.velocitySpread(50),n4_util_NColorUtil.randCol(0.8,0.2,0.2,0.2),1.8);
+		}
+		sprites_projectiles_Projectile.prototype.explode.call(this);
+	}
+	,__class__: sprites_projectiles_Cannonball
 });
 var states_IEmitterState = function() { };
 $hxClasses["states.IEmitterState"] = states_IEmitterState;
@@ -23458,17 +23637,34 @@ states_PlayState.__super__ = n4_NState;
 states_PlayState.prototype = $extend(n4_NState.prototype,{
 	player: null
 	,warships: null
+	,projectiles: null
+	,lowerEmitter: null
 	,emitter: null
 	,create: function() {
 		Registry.PS = this;
-		this.emitter = new n4_effects_particles_NParticleEmitter(200);
-		this.add(this.emitter);
+		this.lowerEmitter = new n4_effects_particles_NParticleEmitter(200);
+		this.add(this.lowerEmitter);
 		this.player = new sprites_PlayerBoat(Math.random() * n4_NGame.width,Math.random() * n4_NGame.height);
 		this.player.set_angle(Math.random() * Math.PI * 2);
 		this.add(this.player);
 		this.warships = new n4_group_NTypedGroup();
+		var enemy = new sprites_Warship(Math.random() * n4_NGame.width,Math.random() * n4_NGame.height);
+		enemy.set_angle(Math.random() * Math.PI * 2);
+		this.warships.add(enemy);
 		this.add(this.warships);
+		this.projectiles = new n4_group_NTypedGroup();
+		this.add(this.projectiles);
+		this.emitter = new n4_effects_particles_NParticleEmitter(400);
+		this.add(this.emitter);
 		n4_NState.prototype.create.call(this);
+	}
+	,update: function(dt) {
+		n4_NGame.overlap(this.player,this.warships,null,n4_NEntity.separate);
+		n4_NGame.overlap(this.player,this.projectiles,$bind(this,this.playerHitProjectile));
+		n4_NState.prototype.update.call(this,dt);
+	}
+	,playerHitProjectile: function(p,j) {
+		j.explode();
 	}
 	,__class__: states_PlayState
 });
@@ -24308,13 +24504,13 @@ kha_Scheduler.DIF_COUNT = 3;
 kha_Scheduler.maxframetime = 0.5;
 kha_Scheduler.startTime = 0;
 kha_Shaders.painter_colored_fragData = "s198:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdmFyeWluZyBoaWdocCB2ZWM0IGZyYWdtZW50Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9GcmFnRGF0YVswXSA9IGZyYWdtZW50Q29sb3I7Cn0KCg";
+kha_Shaders.painter_image_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_Shaders.painter_image_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
 kha_Shaders.painter_colored_vertData = "s331:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgZnJhZ21lbnRDb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
-kha_Shaders.painter_image_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
-kha_Shaders.painter_text_vertData = "s436:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgdGV4Q29vcmQgPSB0ZXhQb3NpdGlvbjsKICAgIGZyYWdtZW50Q29sb3IgPSB2ZXJ0ZXhDb2xvcjsKfQoK";
 kha_Shaders.painter_text_fragData = "s351:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWM0IGZyYWdtZW50Q29sb3I7CnZhcnlpbmcgaGlnaHAgdmVjMiB0ZXhDb29yZDsKCnZvaWQgbWFpbigpCnsKICAgIGdsX0ZyYWdEYXRhWzBdID0gdmVjNChmcmFnbWVudENvbG9yLnh5eiwgdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpLnggKiBmcmFnbWVudENvbG9yLncpOwp9Cgo";
-kha_Shaders.painter_video_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
 kha_Shaders.painter_video_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
+kha_Shaders.painter_video_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
+kha_Shaders.painter_text_vertData = "s436:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgdGV4Q29vcmQgPSB0ZXhQb3NpdGlvbjsKICAgIGZyYWdtZW50Q29sb3IgPSB2ZXJ0ZXhDb2xvcjsKfQoK";
 kha_System.renderListeners = [];
 kha_System.foregroundListeners = [];
 kha_System.resumeListeners = [];
@@ -24483,6 +24679,7 @@ n4_system_NLinkedList._NUM_CACHED_N_LIST = 0;
 n4_system_NQuadTree.A_LIST = 0;
 n4_system_NQuadTree.B_LIST = 1;
 n4_system_NQuadTree._NUM_CACHED_QUAD_TREES = 0;
+sprites_Warship.attackTime = 0.3;
 tweenxcore_Easing.PI = 3.1415926535897932384626433832795;
 tweenxcore_Easing.PI_H = 1.5707963267948966;
 tweenxcore_Easing.LN_2 = 0.6931471805599453;
