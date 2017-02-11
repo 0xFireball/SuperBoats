@@ -21,6 +21,9 @@ class MenuState extends NState {
 	override public function create() {
 		Registry.MS = this;
 		
+		emitter = new NSquareParticleEmitter(200);
+		add(emitter);
+
 		// add dummy boats
 		dummyBoats = new NTypedGroup<DummyBoat>();
 		for (i in 0...Std.int(Math.random() * 6) + 1) {
@@ -28,9 +31,6 @@ class MenuState extends NState {
 			dummyBoats.add(dummyBoat);
 		}
 		add(dummyBoats);
-
-		emitter = new NSquareParticleEmitter(200);
-		add(emitter);
 
 		titleText = new NEText(0, NGame.height * 0.2, "SuperBoats", 50);
 		titleText.screenCenter(NAxes.X);
