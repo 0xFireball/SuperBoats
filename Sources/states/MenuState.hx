@@ -1,20 +1,19 @@
 package states;
 
-import kha.Color;
-
-import n4.math.NPoint;
 import n4.NGame;
 import n4.group.NTypedGroup;
-import n4.entities.NSprite;
 import n4.effects.particles.NSquareParticleEmitter;
 import n4.NState;
 import n4e.ui.NEText;
 import n4.util.NAxes;
 
+using tweenxcore.Tools;
+
 import sprites.DummyBoat;
 
 class MenuState extends NState {
 	private var dummyBoats:NTypedGroup<DummyBoat>;
+	private var titleText:NEText;
 	public var emitter:NSquareParticleEmitter;
 
 	override public function create() {
@@ -31,7 +30,7 @@ class MenuState extends NState {
 		emitter = new NSquareParticleEmitter(200);
 		add(emitter);
 
-		var titleText = new NEText(0, NGame.height * 0.2, "SuperBoats", 50);
+		titleText = new NEText(0, NGame.height * 0.2, "SuperBoats", 50);
 		titleText.screenCenter(NAxes.X);
 		add(titleText);
 
@@ -48,6 +47,11 @@ class MenuState extends NState {
 				d.randomizeMotion();
 			});
 		}
+
+		titleText.color.A = 0.85 
+			+ 0.1 * Math.sin(NGame.updateFrameCount / 8) 
+			+ 0.05 * Math.sin(NGame.updateFrameCount / (Math.random() * 10));
+		
 		// NGame.collide(dummyBoats, dummyBoats);
 		super.update(dt);
 	}
