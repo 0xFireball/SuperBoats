@@ -22,20 +22,20 @@ class Cannonball extends Projectile {
 		particleTrailVector.rotate(new NPoint(0, 0), 180);
 		particleTrailVector.scale(0.7);
 		// emit particles
-		for (i in 0...15) {
+		for (i in 0...5) {
 			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 6),
-				NParticleEmitter.velocitySpread(10, particleTrailVector.x, particleTrailVector.y),
-			NColorUtil.randCol(0.5, 0.1, 0.1, 0.1), 0.9);
+				NParticleEmitter.velocitySpread(40, particleTrailVector.x, particleTrailVector.y),
+			NColorUtil.randCol(0.5, 0.1, 0.1, 0.1), 0.7);
 		}
 
 		super.update(dt);
 	}
 
 	override public function explode() {
-		for (i in 0...35) {
+		for (i in 0...25) {
 			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 8 + 4),
 				NParticleEmitter.velocitySpread(50),
-			NColorUtil.randCol(0.7, 0.2, 0.2, 0.2), 1.8);
+			NColorUtil.randCol(0.8, 0.2, 0.2, 0.2), 1.8);
 		}
 		super.explode();
 	}

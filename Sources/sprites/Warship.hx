@@ -64,7 +64,7 @@ class Warship extends Boat {
 		if (y > NGame.height) y = y % NGame.height;
 		if (x < 0) x += NGame.width;
 		if (y < 0) y += NGame.height;
-		for (i in 0...19) {
+		for (i in 0...14) {
 			Registry.currentEmitterState.emitter.emitSquare(x, y, 6,
 				NParticleEmitter.velocitySpread(45, vx / 4, vy / 4),
 				NColorUtil.randCol(0.5, 0.5, 0.5), 0.8);
