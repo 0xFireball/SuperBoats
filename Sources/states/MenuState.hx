@@ -37,6 +37,10 @@ class MenuState extends NState {
 		titleTextFinalCenter = titleText.x;
 		add(titleText);
 
+		var howToStartText = new NEText(0, NGame.height * 0.5, "Press RETURN to play", 30);
+		howToStartText.screenCenter(NAxes.X);
+		add(howToStartText);
+
 		var madeWithText = new NEText(0, 0, "made with n4 engine", 32);
 		madeWithText.x = NGame.width - madeWithText.width * 1.2;
 		madeWithText.y = NGame.height - madeWithText.height * 1.4;
@@ -54,11 +58,20 @@ class MenuState extends NState {
 			});
 		}
 
+		if (NGame.keys.justPressed(["ENTER"])) {
+			// start game
+			startGame();
+		}
+
 		titleText.color.A = 0.85 
 			+ 0.1 * Math.sin(NGame.updateFrameCount / 8) 
 			+ 0.05 * Math.sin(NGame.updateFrameCount / (Math.random() * 10));
 		
 		// NGame.collide(dummyBoats, dummyBoats);
 		super.update(dt);
+	}
+
+	private function startGame() {
+		NGame.switchState(new PlayState());
 	}
 }
