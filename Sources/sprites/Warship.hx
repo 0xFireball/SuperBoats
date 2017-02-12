@@ -25,8 +25,8 @@ class Warship extends Boat {
 		mass = 84000;
 		sprayAmount = 20;
 		spraySpread = 80;
-		angularThrust = 0.025 * Math.PI;
-		maxAngular = Math.PI / 3;
+		angularThrust = 0.027 * Math.PI;
+		maxAngular = Math.PI / 5;
 		maxVelocity.set(60, 60);
 		renderGraphic(30, 65, function (gpx) {
 			var ctx = gpx.g2;
