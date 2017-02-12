@@ -44,7 +44,7 @@ class Warship extends Boat {
 	private function attackPlayer() {
 		if (attackCount % 3 == 0) {
 			var projectile:Projectile = null;
-			projectile = new Cannonball(x, y);
+			projectile = new Cannonball(x + width / 2, y + height / 2);
 			var bulletSp = projectile.movementSpeed;
 			var player = Registry.PS.player;
 			var dx = (x + width / 2) - (player.x + player.width / 2);
@@ -61,7 +61,7 @@ class Warship extends Boat {
 		}
 		if (attackCount % 7 == 0) {
 			var projectile:Projectile = null;
-			projectile = new Torpedo(x, y);
+			projectile = new Torpedo(x + width / 2, y + height / 2);
 			var bulletSp = projectile.movementSpeed;
 			var player = Registry.PS.player;
 			var dx = (x + width / 2) - (player.x + player.width / 2);
