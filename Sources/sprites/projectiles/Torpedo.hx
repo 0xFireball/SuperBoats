@@ -13,9 +13,12 @@ import n4.NGame;
 class Torpedo extends Projectile {
 	public var thrust(default, null):Float = 6;
 	public var angularThrust(default, null):Float = Math.PI * 0.08;
+	public var isHydra:Bool = false;
+	public var hydraAvailable:Bool = false;
 
-	public function new(?X:Float = 0, ?Y:Float = 0) {
+	public function new(?X:Float = 0, ?Y:Float = 0, ?Hydra:Bool = false) {
 		super(X, Y);
+		isHydra = hydraAvailable = Hydra;
 		movementSpeed = 90;
 		maxVelocity.set(600, 600);
 		makeGraphic(3, 7, Color.fromFloats(0.6, 0.9, 0.6));
@@ -30,6 +33,16 @@ class Torpedo extends Projectile {
 			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 6),
 				NParticleEmitter.velocitySpread(40, particleTrailVector.x, particleTrailVector.y),
 			NColorUtil.randCol(0.4, 0.4, 0.9, 0.1), 0.7);
+		}
+		var distToPlayer = new NVector(x, y).distanceTo(new NPoint(Registry.PS.player.x, Registry.PS.player.y));
+		if (distToPlayer < 400 && hydraAvailable) {
+			hydraAvailable = false;
+			var hydraCount = 3;
+			for (i in 0...(hydraCount - 1)) {
+				var hyd = new Torpedo(x, y, false);
+				hyd.velocity.set(velocity.x / hydraCount, velocity.y / hydraCount);
+				Registry.PS.projectiles.add(hyd);
+			}
 		}
 		// retarget to player
 		var mA = 0;

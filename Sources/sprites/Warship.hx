@@ -71,7 +71,8 @@ class Warship extends Boat {
 		}
 		if (attackCount % 7 == 0) {
 			var projectile:Projectile = null;
-			projectile = new Torpedo(x + width / 2, y + height / 2);
+			var hydraRng:Bool = Std.int(Math.random() * 7) == 4;
+			projectile = new Torpedo(x + width / 2, y + height / 2, hydraRng);
 			var bulletSp = projectile.movementSpeed;
 			var player = Registry.PS.player;
 			var dx = (x + width / 2) - (player.x + player.width / 2);
