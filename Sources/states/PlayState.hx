@@ -13,7 +13,9 @@ import sprites.projectiles.*;
 class PlayState extends NState implements IEmitterState {
 	public var player:PlayerBoat;
 	public var warships:NTypedGroup<Warship>;
+	public var mothership:Warship; // the main enemy
 	public var projectiles:NTypedGroup<Projectile>;
+	public var playerProjectiles:NTypedGroup<Projectile>;
 	public var lowerEmitter(default, null):NParticleEmitter;
 	public var emitter(default, null):NParticleEmitter;
 	public var explosionEmitter(default, null):NParticleEmitter;
@@ -30,12 +32,15 @@ class PlayState extends NState implements IEmitterState {
 		add(player);
 
 		warships = new NTypedGroup<Warship>();
-		var enemy = new Warship(Math.random() * NGame.width, Math.random() * NGame.height);
-		enemy.angle = Math.random() * Math.PI * 2;
-		warships.add(enemy);
+		mothership = new Warship(Math.random() * NGame.width, Math.random() * NGame.height);
+		mothership.angle = Math.random() * Math.PI * 2;
+		warships.add(mothership);
 		add(warships);
 
-		projectiles = new NTypedGroup<Projectile>(20);
+		projectiles = new NTypedGroup<Projectile>(24);
+		add(projectiles);
+
+		playerProjectiles = new NTypedGroup<Projectile>(18);
 		add(projectiles);
 
 		emitter = new NParticleEmitter(70);
@@ -53,11 +58,16 @@ class PlayState extends NState implements IEmitterState {
 	override public function update(dt:Float) {
 		// NGame.collide(player, warships);
 		NGame.overlap(player, projectiles, playerHitProjectile);
+		NGame.overlap(mothership, playerProjectiles, mothershipHitProjectile);
 
 		super.update(dt);
 	}
 
 	private function playerHitProjectile(p:PlayerBoat, j:Projectile) {
+		j.explode();
+	}
+
+	private function mothershipHitProjectile(p:PlayerBoat, j:Projectile) {
 		j.explode();
 	}
 }

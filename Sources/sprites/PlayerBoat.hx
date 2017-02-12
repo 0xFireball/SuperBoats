@@ -7,7 +7,15 @@ import n4.math.NVector;
 import n4.math.NAngle;
 import n4.NGame;
 
+import sprites.projectiles.*;
+
 class PlayerBoat extends Boat {
+	private static var attackTime:Float = 1.0;
+	private var attackTimer:Float = 0;
+	private var attackCount:Int = 0;
+
+	private var attacking:Bool = false;
+
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
 		angularThrust = 0.05 * Math.PI;
@@ -28,8 +36,20 @@ class PlayerBoat extends Boat {
 
 	override public function update(dt:Float) {
 		movement();
+		attackTimer += dt;
+		if (attackTimer > attackTime && attacking) {
+			attack();
+			++attackCount;
+			attackTimer = 0;
+		}
 
 		super.update(dt);
+	}
+
+	public function attack() {
+		var velOpp = velocity.toVector().normalize().rotate(new NPoint(0, 0), 180).scale(20);
+		var fTalon = new Talon(x + velOpp.x, y + velOpp.y, Registry.PS.mothership, true);
+		Registry.PS.playerProjectiles.add(fTalon);
 	}
 
 	private function movement() {
@@ -65,5 +85,7 @@ class PlayerBoat extends Boat {
 		}
 		thrustVector.rotate(new NPoint(0, 0), NAngle.asDegrees(facingAngle));
 		velocity.addPoint(thrustVector);
+
+		attacking = NGame.keys.pressed(["F"]);
 	}
 }
