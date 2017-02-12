@@ -54,7 +54,7 @@ class Warship extends Boat {
 	private function attackPlayer() {
 		if (attackCount % 3 == 0) {
 			var projectile:Projectile = null;
-			projectile = new Cannonball(x + width / 2, y + height / 2);
+			projectile = new Cannonball(x + width / 2, y + height / 2, Registry.PS.player);
 			var bulletSp = projectile.movementSpeed;
 			var player = Registry.PS.player;
 			var dx = (x + width / 2) - (player.x + player.width / 2);
@@ -72,7 +72,7 @@ class Warship extends Boat {
 		if (attackCount % 7 == 0) {
 			var projectile:Projectile = null;
 			var hydraRng:Bool = Std.int(Math.random() * 7) == 4;
-			projectile = new Torpedo(x + width / 2, y + height / 2, hydraRng);
+			projectile = new Torpedo(x + width / 2, y + height / 2, Registry.PS.player, hydraRng);
 			var bulletSp = projectile.movementSpeed;
 			var player = Registry.PS.player;
 			var dx = (x + width / 2) - (player.x + player.width / 2);

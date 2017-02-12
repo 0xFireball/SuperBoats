@@ -11,8 +11,9 @@ import n4.math.NAngle;
 import n4.NGame;
 
 class Cannonball extends Projectile {
-	public function new(?X:Float = 0, ?Y:Float = 0) {
+	public function new(?X:Float = 0, ?Y:Float = 0, Target:NSprite) {
 		super(X, Y);
+		target = Target;
 		movementSpeed = 180;
 		makeGraphic(8, 8, Color.fromFloats(0.6, 0.6, 0.6));
 	}

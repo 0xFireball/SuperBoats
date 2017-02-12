@@ -16,8 +16,9 @@ class Torpedo extends Projectile {
 	public var isHydra:Bool = false;
 	public var hydraAvailable:Bool = false;
 
-	public function new(?X:Float = 0, ?Y:Float = 0, ?Hydra:Bool = false) {
+	public function new(?X:Float = 0, ?Y:Float = 0, Target:NSprite, ?Hydra:Bool = false) {
 		super(X, Y);
+		target = Target;
 		isHydra = hydraAvailable = Hydra;
 		movementSpeed = 90;
 		maxVelocity.set(600, 600);
@@ -34,12 +35,12 @@ class Torpedo extends Projectile {
 				NParticleEmitter.velocitySpread(40, particleTrailVector.x, particleTrailVector.y),
 			NColorUtil.randCol(0.4, 0.4, 0.9, 0.1), 0.7);
 		}
-		var distToPlayer = new NVector(x, y).distanceTo(new NPoint(Registry.PS.player.x, Registry.PS.player.y));
+		var distToPlayer = new NVector(x, y).distanceTo(new NPoint(target.x, target.y));
 		if (distToPlayer < 400 && hydraAvailable) {
 			hydraAvailable = false;
 			var hydraCount = 3;
 			for (i in 0...(hydraCount - 1)) {
-				var hyd = new Torpedo(x, y, false);
+				var hyd = new Torpedo(x, y, target, false);
 				var spray = new NPoint(Math.random() * 40 - 20, Math.random() * 40 - 20);
 				hyd.velocity.set(velocity.x / hydraCount + spray.x, velocity.y / hydraCount + spray.y);
 				Registry.PS.projectiles.add(hyd);
@@ -47,21 +48,21 @@ class Torpedo extends Projectile {
 		}
 		// retarget to player
 		var mA = 0;
-		if (x < Registry.PS.player.x) {
+		if (x < target.x) {
 			mA = 0;
-			if (y < Registry.PS.player.y) {
+			if (y < target.y) {
 				mA += 45;
 				angularVelocity += angularThrust;
-			} else if (y > Registry.PS.player.y) {
+			} else if (y > target.y) {
 				mA -= 45;
 				angularVelocity -= angularThrust;
 			}
-		} else if (x > Registry.PS.player.x) {
+		} else if (x > target.x) {
 			mA = 180;
-			if (y < Registry.PS.player.y) {
+			if (y < target.y) {
 				mA -= 45;
 				angularVelocity -= angularThrust;
-			} else if (y > Registry.PS.player.y) {
+			} else if (y > target.y) {
 				mA += 45;
 				angularVelocity += angularThrust;
 			}

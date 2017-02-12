@@ -12,6 +12,7 @@ import n4.NGame;
 
 class Projectile extends NSprite {
 	public var movementSpeed:Float = 100;
+	public var target:NSprite;
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
