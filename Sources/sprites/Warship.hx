@@ -20,13 +20,22 @@ class Warship extends Boat {
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
-		angularThrust = 0.03 * Math.PI;
-		thrust = 0.5;
+		thrust = 0.3;
 		wrapBounds = false;
 		mass = 84000;
 		sprayAmount = 20;
 		spraySpread = 80;
-		makeGraphic(30, 65, Color.Red);
+		angularThrust = 0.02 * Math.PI;
+		maxAngular = Math.PI / 2.5;
+		renderGraphic(30, 65, function (gpx) {
+			var ctx = gpx.g2;
+			ctx.begin();
+			ctx.color = Color.fromFloats(0.9, 0.3, 0.1);
+			ctx.fillRect(0, 0, width, height);
+			ctx.color = Color.fromFloats(0.9, 0.5, 0.1);
+			ctx.fillRect(width / 3, height * (3 / 4), width / 3, height / 4);
+			ctx.end();
+		}, "warship");
 	}
 
 	override public function update(dt:Float) {
@@ -106,14 +115,25 @@ class Warship extends Boat {
 
 		// forward is in the direction the boat is pointing
 		var facingAngle = angle; // facing upward
+		var selfPosition = new NVector(x, y);
 
 		// process AI logic
-		if (x < NGame.width / 4 || x > NGame.width * (3 / 4) || y < NGame.height / 4 || y > NGame.height * (3 / 4)) {
-			// if going near the edge, point to the center
-			var fieldCenter = new NVector(NGame.width / 2, NGame.height / 2);
-			var distToCenter = new NVector(x, y).subtractNew(fieldCenter);
+		// if going near the edge, point to the center
+		var targetSetpoint:NVector = null;
+		var playerPosition = new NVector(Registry.PS.player.x, Registry.PS.player.y);
+		// targetSetpoint = new NVector(NGame.width / 2, NGame.height / 2);
+		var fieldHypot = Math.sqrt(NGame.width * NGame.width + NGame.height * NGame.height);
+		if (selfPosition.distanceTo(playerPosition) > fieldHypot / 3) {
+			targetSetpoint = playerPosition;
+		} else if (x < NGame.width / 4 || x > NGame.width * (3 / 4)
+			|| y < NGame.height / 4 || y > NGame.height * (3 / 4)) {
+			targetSetpoint = new NVector(NGame.width / 2, NGame.height / 2);
+		}
+
+		if (targetSetpoint != null) {
+			var distToTarget = new NVector(x, y).subtractNew(targetSetpoint);
 			// create an angle from the current position to the center
-			var angleToCenter = NAngle.asRadians(new NVector(x, y).angleBetween(fieldCenter));
+			var angleToCenter = NAngle.asRadians(new NVector(x, y).angleBetween(targetSetpoint));
 			if (Math.abs(facingAngle - angleToCenter) > Math.PI / 8) {
 				if (facingAngle < angleToCenter) {
 					right = true;
@@ -121,8 +141,7 @@ class Warship extends Boat {
 					left = true;
 				}
 			}
-			var fieldHypot = Math.sqrt(NGame.width * NGame.width + NGame.height * NGame.height);
-			if (distToCenter.length > fieldHypot / 4) {
+			if (distToTarget.length > fieldHypot / 4) {
 				up = true;
 			}
 		}

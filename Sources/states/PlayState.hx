@@ -4,6 +4,9 @@ import n4.NGame;
 import n4.NState;
 import n4.group.NTypedGroup;
 import n4.effects.particles.NParticleEmitter;
+
+import n4e.ui.NEText;
+
 import sprites.*;
 import sprites.projectiles.*;
 
@@ -14,6 +17,7 @@ class PlayState extends NState implements IEmitterState {
 	public var lowerEmitter(default, null):NParticleEmitter;
 	public var emitter(default, null):NParticleEmitter;
 	public var explosionEmitter(default, null):NParticleEmitter;
+	public var helpText(default, null):NEText;
 
 	override public function create() {
 		Registry.PS = this;
@@ -39,6 +43,9 @@ class PlayState extends NState implements IEmitterState {
 
 		explosionEmitter = new NParticleEmitter(120);
 		add(explosionEmitter);
+
+		helpText = new NEText(0, NGame.height / 3, "", 40);
+		add(helpText);
 
 		super.create();
 	}
