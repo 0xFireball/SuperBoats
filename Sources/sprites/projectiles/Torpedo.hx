@@ -18,7 +18,7 @@ class Torpedo extends Projectile {
 		super(X, Y);
 		movementSpeed = 90;
 		maxVelocity.set(600, 600);
-		makeGraphic(5, 5, Color.fromFloats(0.6, 0.9, 0.6));
+		makeGraphic(3, 7, Color.fromFloats(0.6, 0.9, 0.6));
 	}
 
 	override public function update(dt:Float) {
