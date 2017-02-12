@@ -3,9 +3,22 @@
 <head>
 	<meta charset="utf-8"/>
 	<title>SuperBoats</title>
+	<style>
+		html, body {
+			margin: 0px;
+			height: 100%;
+			width: 100%;
+			overflow: hidden;
+		}
+	</style>
 </head>
 <body>
 	<canvas id="khanvas" width="1024" height="768"></canvas>
+	<script>
+		var canvas = document.getElementById('khanvas');
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+	</script>
 	<script src="kha.js"></script>
 </body>
 </html>
