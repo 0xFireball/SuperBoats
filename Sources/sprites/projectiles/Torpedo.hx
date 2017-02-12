@@ -63,7 +63,7 @@ class Torpedo extends Projectile {
 		for (i in 0...14) {
 			Registry.PS.explosionEmitter.emitSquare(center.x, center.y, Std.int(Math.random() * 10 + 5),
 				NParticleEmitter.velocitySpread(90),
-			NColorUtil.randCol(0.8, 0.8, 0.2, 0.2), 1.8);
+			NColorUtil.randCol(0.8, 0.5, 0.2, 0.2), 1.8);
 		}
 		super.explode();
 	}
