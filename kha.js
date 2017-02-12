@@ -180,7 +180,7 @@ var Main = function() { };
 $hxClasses["Main"] = Main;
 Main.__name__ = true;
 Main.main = function() {
-	n4_NGame.init("SuperBoats",window.innerWidth,window.innerHeight,states_IntroState);
+	n4_NGame.init("SuperBoats",0,0,states_IntroState);
 };
 Math.__name__ = true;
 var Reflect = function() { };
@@ -21409,6 +21409,10 @@ n4_NGame.init = function(Title,Width,Height,InitialState,Framerate) {
 	}
 	if(Title == null) {
 		Title = "n4";
+	}
+	if(Width == 0 && Height == 0) {
+		Width = window.innerWidth;
+		Height = window.innerHeight;
 	}
 	n4_NGame.width = Width;
 	n4_NGame.height = Height;
