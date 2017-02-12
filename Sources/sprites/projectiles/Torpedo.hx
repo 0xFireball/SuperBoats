@@ -40,7 +40,8 @@ class Torpedo extends Projectile {
 			var hydraCount = 3;
 			for (i in 0...(hydraCount - 1)) {
 				var hyd = new Torpedo(x, y, false);
-				hyd.velocity.set(velocity.x / hydraCount, velocity.y / hydraCount);
+				var spray = new NPoint(Math.random() * 40 - 20, Math.random() * 40 - 20);
+				hyd.velocity.set(velocity.x / hydraCount + spray.x, velocity.y / hydraCount + spray.y);
 				Registry.PS.projectiles.add(hyd);
 			}
 		}
