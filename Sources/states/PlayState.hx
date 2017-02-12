@@ -1,5 +1,7 @@
 package states;
 
+import kha.Color;
+
 import n4.NGame;
 import n4.NState;
 import n4.group.NTypedGroup;
@@ -23,6 +25,8 @@ class PlayState extends NState implements IEmitterState {
 
 	override public function create() {
 		Registry.PS = this;
+
+		bgColor = Color.fromValue(0xFF073F52);
 
 		lowerEmitter = new NParticleEmitter(115);
 		add(lowerEmitter);
