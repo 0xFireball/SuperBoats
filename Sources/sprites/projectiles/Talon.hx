@@ -11,10 +11,11 @@ import n4.math.NAngle;
 import n4.NGame;
 
 class Talon extends Projectile {
-	public var thrust(default, null):Float = 3;
+	public var thrust(default, null):Float = 7;
 	public var angularThrust(default, null):Float = Math.PI * 0.04;
 	public var isHydra:Bool = false;
 	public var hydraAvailable:Bool = false;
+	public var adjustmentFactor:Float = 0.4;
 
 	public function new(?X:Float = 0, ?Y:Float = 0, Target:NSprite, ?Hydra:Bool = false) {
 		super(X, Y);
@@ -68,7 +69,7 @@ class Talon extends Projectile {
 			}
 		}
 		var thrustVector = new NPoint(thrust, 0);
-		thrustVector.rotate(new NPoint(0, 0), mA);
+		thrustVector.rotate(new NPoint(0, 0), mA * adjustmentFactor);
 		velocity.addPoint(thrustVector);
 
 		super.update(dt);

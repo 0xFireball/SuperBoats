@@ -15,6 +15,7 @@ class Torpedo extends Projectile {
 	public var angularThrust(default, null):Float = Math.PI * 0.08;
 	public var isHydra:Bool = false;
 	public var hydraAvailable:Bool = false;
+	public var adjustmentFactor:Float = 0.9;
 
 	public function new(?X:Float = 0, ?Y:Float = 0, Target:NSprite, ?Hydra:Bool = false) {
 		super(X, Y);
@@ -68,7 +69,7 @@ class Torpedo extends Projectile {
 			}
 		}
 		var thrustVector = new NPoint(thrust, 0);
-		thrustVector.rotate(new NPoint(0, 0), mA);
+		thrustVector.rotate(new NPoint(0, 0), mA * adjustmentFactor);
 		velocity.addPoint(thrustVector);
 
 		super.update(dt);

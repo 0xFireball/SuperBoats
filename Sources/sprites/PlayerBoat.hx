@@ -48,7 +48,7 @@ class PlayerBoat extends Boat {
 
 	public function attack() {
 		var velOpp = velocity.toVector().normalize().rotate(new NPoint(0, 0), 180).scale(20);
-		var fTalon = new Talon(x + velOpp.x, y + velOpp.y, Registry.PS.mothership, true);
+		var fTalon = new Talon(x + velOpp.x, y + velOpp.y, Registry.PS.mothership, false);
 		Registry.PS.playerProjectiles.add(fTalon);
 	}
 
