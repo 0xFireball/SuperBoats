@@ -15,6 +15,7 @@ class Warship extends Boat {
 	private static var attackTime:Float = 0.3;
 	private var attackTimer:Float = 0;
 	private var attackCount:Int = 0;
+	private var cannonMissRange:Float = Math.PI * 1 / 8;
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
@@ -48,7 +49,14 @@ class Warship extends Boat {
 			var dx = (x + width / 2) - (player.x + player.width / 2);
 			var dy = (y + height / 2) - (player.y + player.height / 2);
 			var m = -Math.sqrt(dx * dx + dy * dy);
-			shootProjectile(projectile, dx * bulletSp / m, dy * bulletSp / m);
+			var vx = dx * bulletSp / m;
+			var vy = dy * bulletSp / m;
+			var pVelVec = new NPoint(vx, vy);
+			// accuracy isn't perfect
+			pVelVec.rotate(new NPoint(0, 0), Math.random() * NAngle.asDegrees(Math.random() * cannonMissRange * 2 - cannonMissRange));
+			vx = pVelVec.x;
+			vy = pVelVec.y;
+			shootProjectile(projectile, vx, vy);
 		}
 	}
 

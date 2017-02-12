@@ -33,7 +33,7 @@ class PlayState extends NState implements IEmitterState {
 		projectiles = new NTypedGroup<Projectile>();
 		add(projectiles);
 
-		emitter = new NParticleEmitter(150);
+		emitter = new NParticleEmitter(300);
 		add(emitter);
 
 		super.create();
