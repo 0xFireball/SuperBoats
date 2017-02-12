@@ -21744,6 +21744,8 @@ n4_input_keyboard_NKeyboard.prototype = {
 	,onKeyDown: function(k,c) {
 		if(c == "") {
 			c = k[0].toUpperCase();
+		} else {
+			c = c.toUpperCase();
 		}
 		var _this = this.state;
 		if((__map_reserved[c] != null ? _this.getReserved(c) : _this.h[c]) == null) {
@@ -21754,8 +21756,6 @@ n4_input_keyboard_NKeyboard.prototype = {
 			} else {
 				_this1.h[c] = v;
 			}
-		} else {
-			c = c.toUpperCase();
 		}
 		var _this2 = this.state;
 		this.list.push(__map_reserved[c] != null ? _this2.getReserved(c) : _this2.h[c]);
@@ -21765,6 +21765,8 @@ n4_input_keyboard_NKeyboard.prototype = {
 	,onKeyUp: function(k,c) {
 		if(c == "") {
 			c = k[0].toUpperCase();
+		} else {
+			c = c.toUpperCase();
 		}
 		var _this = this.state;
 		if((__map_reserved[c] != null ? _this.getReserved(c) : _this.h[c]) == null) {
@@ -21775,8 +21777,6 @@ n4_input_keyboard_NKeyboard.prototype = {
 			} else {
 				_this1.h[c] = v;
 			}
-		} else {
-			c = c.toUpperCase();
 		}
 		var _this2 = this.state;
 		(__map_reserved[c] != null ? _this2.getReserved(c) : _this2.h[c]).release();
@@ -23279,6 +23279,9 @@ var sprites_PlayerBoat = function(X,Y) {
 	if(X == null) {
 		X = 0;
 	}
+	this.attacking = false;
+	this.attackCount = 0;
+	this.attackTimer = 0;
 	var _gthis = this;
 	sprites_Boat.call(this,X,Y);
 	this.angularThrust = 0.05 * Math.PI;
@@ -23300,9 +23303,31 @@ $hxClasses["sprites.PlayerBoat"] = sprites_PlayerBoat;
 sprites_PlayerBoat.__name__ = true;
 sprites_PlayerBoat.__super__ = sprites_Boat;
 sprites_PlayerBoat.prototype = $extend(sprites_Boat.prototype,{
-	update: function(dt) {
+	attackTimer: null
+	,attackCount: null
+	,attacking: null
+	,update: function(dt) {
 		this.movement();
+		this.attackTimer += dt;
+		if(this.attackTimer > sprites_PlayerBoat.attackTime && this.attacking) {
+			this.attack();
+			++this.attackCount;
+			this.attackTimer = 0;
+		}
 		sprites_Boat.prototype.update.call(this,dt);
+	}
+	,attack: function() {
+		var velOpp = this.velocity.toVector().normalize().rotate(new n4_math_NPoint(0,0),180).scale(20);
+		var fTalon = new sprites_projectiles_Talon(this.x + velOpp.x,this.y + velOpp.y,Registry.PS.mothership,false);
+		var _this = new n4_math_NVector(fTalon.x,fTalon.y);
+		var Y = Registry.PS.mothership.y;
+		var _g = _this;
+		_g.set_x(_g.x - Registry.PS.mothership.x);
+		var _g1 = _this;
+		_g1.set_y(_g1.y - Y);
+		var tVec = _this.rotate(new n4_math_NPoint(0,0),180).toVector().normalize().scale(fTalon.movementSpeed);
+		fTalon.velocity.set(tVec.x,tVec.y);
+		Registry.PS.playerProjectiles.add(fTalon);
 	}
 	,movement: function() {
 		var left = false;
@@ -23340,6 +23365,7 @@ sprites_PlayerBoat.prototype = $extend(sprites_Boat.prototype,{
 		}
 		thrustVector.rotate(new n4_math_NPoint(0,0),facingAngle * (180 / Math.PI));
 		this.velocity.addPoint(thrustVector);
+		this.attacking = n4_NGame.keys.pressed(["F"]);
 	}
 	,__class__: sprites_PlayerBoat
 });
@@ -23395,7 +23421,7 @@ sprites_Warship.prototype = $extend(sprites_Boat.prototype,{
 	,attackPlayer: function() {
 		if(this.attackCount % 3 == 0) {
 			var projectile = null;
-			projectile = new sprites_projectiles_Cannonball(this.x + this.get_width() / 2,this.y + this.get_height() / 2);
+			projectile = new sprites_projectiles_Cannonball(this.x + this.get_width() / 2,this.y + this.get_height() / 2,Registry.PS.player);
 			var bulletSp = projectile.movementSpeed;
 			var player = Registry.PS.player;
 			var dx = this.x + this.get_width() / 2 - (player.x + player.get_width() / 2);
@@ -23412,7 +23438,7 @@ sprites_Warship.prototype = $extend(sprites_Boat.prototype,{
 		if(this.attackCount % 7 == 0) {
 			var projectile1 = null;
 			var hydraRng = (Math.random() * 7 | 0) == 4;
-			projectile1 = new sprites_projectiles_Torpedo(this.x + this.get_width() / 2,this.y + this.get_height() / 2,hydraRng);
+			projectile1 = new sprites_projectiles_Torpedo(this.x + this.get_width() / 2,this.y + this.get_height() / 2,Registry.PS.player,hydraRng);
 			var bulletSp1 = projectile1.movementSpeed;
 			var player1 = Registry.PS.player;
 			var dx1 = this.x + this.get_width() / 2 - (player1.x + player1.get_width() / 2);
@@ -23522,6 +23548,7 @@ sprites_projectiles_Projectile.__name__ = true;
 sprites_projectiles_Projectile.__super__ = n4_entities_NSprite;
 sprites_projectiles_Projectile.prototype = $extend(n4_entities_NSprite.prototype,{
 	movementSpeed: null
+	,target: null
 	,explode: function() {
 		this.destroy();
 	}
@@ -23536,7 +23563,7 @@ sprites_projectiles_Projectile.prototype = $extend(n4_entities_NSprite.prototype
 	}
 	,__class__: sprites_projectiles_Projectile
 });
-var sprites_projectiles_Cannonball = function(X,Y) {
+var sprites_projectiles_Cannonball = function(X,Y,Target) {
 	if(Y == null) {
 		Y = 0;
 	}
@@ -23544,6 +23571,7 @@ var sprites_projectiles_Cannonball = function(X,Y) {
 		X = 0;
 	}
 	sprites_projectiles_Projectile.call(this,X,Y);
+	this.target = Target;
 	this.movementSpeed = 180;
 	this.makeGraphic(8,8,kha__$Color_Color_$Impl_$.fromFloats(0.6,0.6,0.6));
 };
@@ -23577,7 +23605,91 @@ sprites_projectiles_Cannonball.prototype = $extend(sprites_projectiles_Projectil
 	}
 	,__class__: sprites_projectiles_Cannonball
 });
-var sprites_projectiles_Torpedo = function(X,Y,Hydra) {
+var sprites_projectiles_Talon = function(X,Y,Target,Hydra) {
+	if(Hydra == null) {
+		Hydra = false;
+	}
+	if(Y == null) {
+		Y = 0;
+	}
+	if(X == null) {
+		X = 0;
+	}
+	this.hydraAvailable = false;
+	this.isHydra = false;
+	this.angularThrust = Math.PI * 0.04;
+	this.thrust = 1;
+	sprites_projectiles_Projectile.call(this,X,Y);
+	this.target = Target;
+	this.isHydra = this.hydraAvailable = Hydra;
+	this.movementSpeed = 320;
+	this.maxVelocity.set(600,600);
+	this.makeGraphic(6,2,kha__$Color_Color_$Impl_$.fromFloats(0.1,0.9,0.9));
+};
+$hxClasses["sprites.projectiles.Talon"] = sprites_projectiles_Talon;
+sprites_projectiles_Talon.__name__ = true;
+sprites_projectiles_Talon.__super__ = sprites_projectiles_Projectile;
+sprites_projectiles_Talon.prototype = $extend(sprites_projectiles_Projectile.prototype,{
+	thrust: null
+	,angularThrust: null
+	,isHydra: null
+	,hydraAvailable: null
+	,update: function(dt) {
+		var particleTrailVector = this.velocity.toVector();
+		particleTrailVector.rotate(new n4_math_NPoint(0,0),180);
+		particleTrailVector.scale(0.7);
+		var _g = 0;
+		while(_g < 2) {
+			++_g;
+			Registry.get_currentEmitterState().emitter.emitSquare(this.get_center().x,this.get_center().y,Math.random() * 6 | 0,n4_effects_particles_NParticleEmitter.velocitySpread(40,particleTrailVector.x,particleTrailVector.y),n4_util_NColorUtil.randCol(0.1,0.9,0.9,0.1),0.7);
+		}
+		if(new n4_math_NVector(this.x,this.y).distanceTo(new n4_math_NPoint(this.target.x,this.target.y)) < 400 && this.hydraAvailable) {
+			this.hydraAvailable = false;
+			var _g1 = 0;
+			while(_g1 < 4) {
+				++_g1;
+				var hyd = new sprites_projectiles_Torpedo(this.x,this.y,this.target,false);
+				var spray = new n4_math_NPoint(Math.random() * 40 - 20,Math.random() * 40 - 20);
+				hyd.velocity.set(this.velocity.x / 5 + spray.x,this.velocity.y / 5 + spray.y);
+				Registry.PS.projectiles.add(hyd);
+			}
+		}
+		var mA = 0;
+		if(this.x < this.target.x) {
+			mA = 0;
+			if(this.y < this.target.y) {
+				mA = 45;
+				this.angularVelocity += this.angularThrust;
+			} else if(this.y > this.target.y) {
+				mA = -45;
+				this.angularVelocity -= this.angularThrust;
+			}
+		} else if(this.x > this.target.x) {
+			mA = 180;
+			if(this.y < this.target.y) {
+				mA = 135;
+				this.angularVelocity -= this.angularThrust;
+			} else if(this.y > this.target.y) {
+				mA = 225;
+				this.angularVelocity += this.angularThrust;
+			}
+		}
+		var thrustVector = new n4_math_NPoint(this.thrust,0);
+		thrustVector.rotate(new n4_math_NPoint(0,0),mA);
+		this.velocity.addPoint(thrustVector);
+		sprites_projectiles_Projectile.prototype.update.call(this,dt);
+	}
+	,explode: function() {
+		var _g = 0;
+		while(_g < 14) {
+			++_g;
+			Registry.PS.explosionEmitter.emitSquare(this.get_center().x,this.get_center().y,Math.random() * 10 + 5 | 0,n4_effects_particles_NParticleEmitter.velocitySpread(90),n4_util_NColorUtil.randCol(0.8,0.5,0.2,0.2),1.8);
+		}
+		sprites_projectiles_Projectile.prototype.explode.call(this);
+	}
+	,__class__: sprites_projectiles_Talon
+});
+var sprites_projectiles_Torpedo = function(X,Y,Target,Hydra) {
 	if(Hydra == null) {
 		Hydra = false;
 	}
@@ -23592,6 +23704,7 @@ var sprites_projectiles_Torpedo = function(X,Y,Hydra) {
 	this.angularThrust = Math.PI * 0.08;
 	this.thrust = 6;
 	sprites_projectiles_Projectile.call(this,X,Y);
+	this.target = Target;
 	this.isHydra = this.hydraAvailable = Hydra;
 	this.movementSpeed = 90;
 	this.maxVelocity.set(600,600);
@@ -23614,33 +23727,33 @@ sprites_projectiles_Torpedo.prototype = $extend(sprites_projectiles_Projectile.p
 			++_g;
 			Registry.get_currentEmitterState().emitter.emitSquare(this.get_center().x,this.get_center().y,Math.random() * 6 | 0,n4_effects_particles_NParticleEmitter.velocitySpread(40,particleTrailVector.x,particleTrailVector.y),n4_util_NColorUtil.randCol(0.4,0.4,0.9,0.1),0.7);
 		}
-		if(new n4_math_NVector(this.x,this.y).distanceTo(new n4_math_NPoint(Registry.PS.player.x,Registry.PS.player.y)) < 400 && this.hydraAvailable) {
+		if(new n4_math_NVector(this.x,this.y).distanceTo(new n4_math_NPoint(this.target.x,this.target.y)) < 400 && this.hydraAvailable) {
 			this.hydraAvailable = false;
 			var _g1 = 0;
 			while(_g1 < 2) {
 				++_g1;
-				var hyd = new sprites_projectiles_Torpedo(this.x,this.y,false);
+				var hyd = new sprites_projectiles_Torpedo(this.x,this.y,this.target,false);
 				var spray = new n4_math_NPoint(Math.random() * 40 - 20,Math.random() * 40 - 20);
 				hyd.velocity.set(this.velocity.x / 3 + spray.x,this.velocity.y / 3 + spray.y);
 				Registry.PS.projectiles.add(hyd);
 			}
 		}
 		var mA = 0;
-		if(this.x < Registry.PS.player.x) {
+		if(this.x < this.target.x) {
 			mA = 0;
-			if(this.y < Registry.PS.player.y) {
+			if(this.y < this.target.y) {
 				mA = 45;
 				this.angularVelocity += this.angularThrust;
-			} else if(this.y > Registry.PS.player.y) {
+			} else if(this.y > this.target.y) {
 				mA = -45;
 				this.angularVelocity -= this.angularThrust;
 			}
-		} else if(this.x > Registry.PS.player.x) {
+		} else if(this.x > this.target.x) {
 			mA = 180;
-			if(this.y < Registry.PS.player.y) {
+			if(this.y < this.target.y) {
 				mA = 135;
 				this.angularVelocity -= this.angularThrust;
-			} else if(this.y > Registry.PS.player.y) {
+			} else if(this.y > this.target.y) {
 				mA = 225;
 				this.angularVelocity += this.angularThrust;
 			}
@@ -23784,7 +23897,9 @@ states_PlayState.__super__ = n4_NState;
 states_PlayState.prototype = $extend(n4_NState.prototype,{
 	player: null
 	,warships: null
+	,mothership: null
 	,projectiles: null
+	,playerProjectiles: null
 	,lowerEmitter: null
 	,emitter: null
 	,explosionEmitter: null
@@ -23797,12 +23912,14 @@ states_PlayState.prototype = $extend(n4_NState.prototype,{
 		this.player.set_angle(Math.random() * Math.PI * 2);
 		this.add(this.player);
 		this.warships = new n4_group_NTypedGroup();
-		var enemy = new sprites_Warship(Math.random() * n4_NGame.width,Math.random() * n4_NGame.height);
-		enemy.set_angle(Math.random() * Math.PI * 2);
-		this.warships.add(enemy);
+		this.mothership = new sprites_Warship(Math.random() * n4_NGame.width,Math.random() * n4_NGame.height);
+		this.mothership.set_angle(Math.random() * Math.PI * 2);
+		this.warships.add(this.mothership);
 		this.add(this.warships);
-		this.projectiles = new n4_group_NTypedGroup(20);
+		this.projectiles = new n4_group_NTypedGroup(24);
 		this.add(this.projectiles);
+		this.playerProjectiles = new n4_group_NTypedGroup(18);
+		this.add(this.playerProjectiles);
 		this.emitter = new n4_effects_particles_NParticleEmitter(70);
 		this.add(this.emitter);
 		this.explosionEmitter = new n4_effects_particles_NParticleEmitter(120);
@@ -23813,9 +23930,13 @@ states_PlayState.prototype = $extend(n4_NState.prototype,{
 	}
 	,update: function(dt) {
 		n4_NGame.overlap(this.player,this.projectiles,$bind(this,this.playerHitProjectile));
+		n4_NGame.overlap(this.mothership,this.playerProjectiles,$bind(this,this.mothershipHitProjectile));
 		n4_NState.prototype.update.call(this,dt);
 	}
 	,playerHitProjectile: function(p,j) {
+		j.explode();
+	}
+	,mothershipHitProjectile: function(p,j) {
 		j.explode();
 	}
 	,__class__: states_PlayState
@@ -24831,6 +24952,7 @@ n4_system_NLinkedList._NUM_CACHED_N_LIST = 0;
 n4_system_NQuadTree.A_LIST = 0;
 n4_system_NQuadTree.B_LIST = 1;
 n4_system_NQuadTree._NUM_CACHED_QUAD_TREES = 0;
+sprites_PlayerBoat.attackTime = 1.0;
 sprites_Warship.attackTime = 0.2;
 tweenxcore_Easing.PI = 3.1415926535897932384626433832795;
 tweenxcore_Easing.PI_H = 1.57079632679489656;
