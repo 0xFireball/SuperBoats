@@ -20,13 +20,14 @@ class Warship extends Boat {
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
-		thrust = 0.3;
+		thrust = 0.6;
 		wrapBounds = false;
 		mass = 84000;
 		sprayAmount = 20;
 		spraySpread = 80;
-		angularThrust = 0.02 * Math.PI;
-		maxAngular = Math.PI / 2.5;
+		angularThrust = 0.025 * Math.PI;
+		maxAngular = Math.PI / 3;
+		maxVelocity.set(60, 60);
 		renderGraphic(30, 65, function (gpx) {
 			var ctx = gpx.g2;
 			ctx.begin();
@@ -133,16 +134,18 @@ class Warship extends Boat {
 		if (targetSetpoint != null) {
 			var distToTarget = new NVector(x, y).subtractNew(targetSetpoint);
 			// create an angle from the current position to the center
-			var angleToCenter = NAngle.asRadians(new NVector(x, y).angleBetween(targetSetpoint));
-			if (Math.abs(facingAngle - angleToCenter) > Math.PI / 8) {
-				if (facingAngle < angleToCenter) {
+			var angleToSetpoint = NAngle.asRadians(new NVector(x, y).angleBetween(targetSetpoint));
+			if (Math.abs(facingAngle - angleToSetpoint) > Math.PI / 8) {
+				if (facingAngle < angleToSetpoint) {
 					right = true;
-				} else if (facingAngle > angleToCenter) {
+				} else if (facingAngle > angleToSetpoint) {
 					left = true;
 				}
-			}
-			if (distToTarget.length > fieldHypot / 4) {
-				up = true;
+			} else {
+				// we're on target
+				if (distToTarget.length > fieldHypot / 4) {
+					up = true;
+				}
 			}
 		}
 
