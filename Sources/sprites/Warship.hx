@@ -12,10 +12,11 @@ import n4.util.NColorUtil;
 import sprites.projectiles.*;
 
 class Warship extends Boat {
-	private static var attackTime:Float = 0.3;
+	private static var attackTime:Float = 0.2;
 	private var attackTimer:Float = 0;
 	private var attackCount:Int = 0;
 	private var cannonMissRange:Float = Math.PI * 1 / 8;
+	private var torpedoMissRange:Float = Math.PI * 1 / 3;
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
@@ -54,6 +55,23 @@ class Warship extends Boat {
 			var pVelVec = new NPoint(vx, vy);
 			// accuracy isn't perfect
 			pVelVec.rotate(new NPoint(0, 0), Math.random() * NAngle.asDegrees(Math.random() * cannonMissRange * 2 - cannonMissRange));
+			vx = pVelVec.x;
+			vy = pVelVec.y;
+			shootProjectile(projectile, vx, vy);
+		}
+		if (attackCount % 7 == 0) {
+			var projectile:Projectile = null;
+			projectile = new Torpedo(x, y);
+			var bulletSp = projectile.movementSpeed;
+			var player = Registry.PS.player;
+			var dx = (x + width / 2) - (player.x + player.width / 2);
+			var dy = (y + height / 2) - (player.y + player.height / 2);
+			var m = -Math.sqrt(dx * dx + dy * dy);
+			var vx = dx * bulletSp / m;
+			var vy = dy * bulletSp / m;
+			var pVelVec = new NPoint(vx, vy);
+			// accuracy isn't perfect
+			pVelVec.rotate(new NPoint(0, 0), Math.random() * NAngle.asDegrees(Math.random() * torpedoMissRange * 2 - torpedoMissRange));
 			vx = pVelVec.x;
 			vy = pVelVec.y;
 			shootProjectile(projectile, vx, vy);

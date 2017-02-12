@@ -17,7 +17,7 @@ class PlayState extends NState implements IEmitterState {
 	override public function create() {
 		Registry.PS = this;
 
-		lowerEmitter = new NParticleEmitter(100);
+		lowerEmitter = new NParticleEmitter(80);
 		add(lowerEmitter);
 
 		player = new PlayerBoat(Math.random() * NGame.width, Math.random() * NGame.height);
@@ -33,7 +33,7 @@ class PlayState extends NState implements IEmitterState {
 		projectiles = new NTypedGroup<Projectile>();
 		add(projectiles);
 
-		emitter = new NParticleEmitter(300);
+		emitter = new NParticleEmitter(120);
 		add(emitter);
 
 		super.create();
