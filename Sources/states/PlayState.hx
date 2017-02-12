@@ -13,6 +13,7 @@ class PlayState extends NState implements IEmitterState {
 	public var projectiles:NTypedGroup<Projectile>;
 	public var lowerEmitter(default, null):NParticleEmitter;
 	public var emitter(default, null):NParticleEmitter;
+	public var explosionEmitter(default, null):NParticleEmitter;
 
 	override public function create() {
 		Registry.PS = this;
@@ -33,8 +34,11 @@ class PlayState extends NState implements IEmitterState {
 		projectiles = new NTypedGroup<Projectile>();
 		add(projectiles);
 
-		emitter = new NParticleEmitter(120);
+		emitter = new NParticleEmitter(70);
 		add(emitter);
+
+		explosionEmitter = new NParticleEmitter(120);
+		add(explosionEmitter);
 
 		super.create();
 	}

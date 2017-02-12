@@ -26,7 +26,7 @@ class Torpedo extends Projectile {
 		particleTrailVector.rotate(new NPoint(0, 0), 180);
 		particleTrailVector.scale(0.7);
 		// emit trail particles
-		for (i in 0...5) {
+		for (i in 0...2) {
 			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 6),
 				NParticleEmitter.velocitySpread(40, particleTrailVector.x, particleTrailVector.y),
 			NColorUtil.randCol(0.4, 0.4, 0.9, 0.1), 0.7);
@@ -61,7 +61,7 @@ class Torpedo extends Projectile {
 
 	override public function explode() {
 		for (i in 0...14) {
-			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 10 + 5),
+			Registry.PS.explosionEmitter.emitSquare(center.x, center.y, Std.int(Math.random() * 10 + 5),
 				NParticleEmitter.velocitySpread(90),
 			NColorUtil.randCol(0.8, 0.8, 0.2, 0.2), 1.8);
 		}
