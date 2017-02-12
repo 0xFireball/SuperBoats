@@ -59,6 +59,7 @@ class MenuState extends NState implements IEmitterState {
 
 		if (NGame.keys.justPressed(["ENTER"])) {
 			// start game
+			// kha.SystemImpl.requestFullscreen();
 			startGame();
 		}
 
