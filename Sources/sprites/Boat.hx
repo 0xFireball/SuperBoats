@@ -37,7 +37,7 @@ class Boat extends NSprite {
 		particleTrailVector.scale(0.7);
 
 		for (i in 0...sprayAmount) {
-			Registry.PS.lowerEmitter.emitSquare(center.x, center.y, Std.int(Math.random() * 10),
+			Registry.PS.lowerEmitter.emitSquare(center.x, center.y, Std.int(Math.random() * 10) + 1,
 				NParticleEmitter.velocitySpread(spraySpread, particleTrailVector.x, particleTrailVector.y),
 			NColorUtil.randCol(0.2, 0.6, 0.8, 0.2), Math.random() * 1.0);
 		}

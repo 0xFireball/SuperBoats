@@ -24,7 +24,7 @@ class Cannonball extends Projectile {
 		particleTrailVector.scale(0.7);
 		// emit particles
 		for (i in 0...2) {
-			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 6),
+			Registry.currentEmitterState.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 6) + 1,
 				NParticleEmitter.velocitySpread(40, particleTrailVector.x, particleTrailVector.y),
 			NColorUtil.randCol(0.5, 0.1, 0.1, 0.1), 0.7);
 		}

@@ -24,7 +24,7 @@ class DummyBoat extends NSprite {
 		particleTrailVector.scale(0.7);
 
 		for (i in 0...5) {
-			Registry.MS.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 10),
+			Registry.MS.emitter.emitSquare(center.x, center.y, Std.int(Math.random() * 10) + 1,
 				NParticleEmitter.velocitySpread(40, particleTrailVector.x, particleTrailVector.y),
 			NColorUtil.randCol(0.2, 0.6, 0.8, 0.2), Math.random() * 1.0);
 		}
