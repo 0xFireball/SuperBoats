@@ -23906,6 +23906,7 @@ states_PlayState.prototype = $extend(n4_NState.prototype,{
 	,helpText: null
 	,create: function() {
 		Registry.PS = this;
+		this.set_bgColor(kha__$Color_Color_$Impl_$._new(-16302254));
 		this.lowerEmitter = new n4_effects_particles_NParticleEmitter(115);
 		this.add(this.lowerEmitter);
 		this.player = new sprites_PlayerBoat(Math.random() * n4_NGame.width,Math.random() * n4_NGame.height);
