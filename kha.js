@@ -23361,8 +23361,8 @@ var sprites_Warship = function(X,Y) {
 	this.mass = 84000;
 	this.sprayAmount = 20;
 	this.spraySpread = 80;
-	this.angularThrust = 0.025 * Math.PI;
-	this.maxAngular = Math.PI / 3;
+	this.angularThrust = 0.027 * Math.PI;
+	this.maxAngular = Math.PI / 5;
 	this.maxVelocity.set(60,60);
 	this.renderGraphic(30,65,function(gpx) {
 		var ctx = gpx.get_g2();
@@ -23411,7 +23411,8 @@ sprites_Warship.prototype = $extend(sprites_Boat.prototype,{
 		}
 		if(this.attackCount % 7 == 0) {
 			var projectile1 = null;
-			projectile1 = new sprites_projectiles_Torpedo(this.x + this.get_width() / 2,this.y + this.get_height() / 2);
+			var hydraRng = (Math.random() * 7 | 0) == 4;
+			projectile1 = new sprites_projectiles_Torpedo(this.x + this.get_width() / 2,this.y + this.get_height() / 2,hydraRng);
 			var bulletSp1 = projectile1.movementSpeed;
 			var player1 = Registry.PS.player;
 			var dx1 = this.x + this.get_width() / 2 - (player1.x + player1.get_width() / 2);
@@ -23576,16 +23577,22 @@ sprites_projectiles_Cannonball.prototype = $extend(sprites_projectiles_Projectil
 	}
 	,__class__: sprites_projectiles_Cannonball
 });
-var sprites_projectiles_Torpedo = function(X,Y) {
+var sprites_projectiles_Torpedo = function(X,Y,Hydra) {
+	if(Hydra == null) {
+		Hydra = false;
+	}
 	if(Y == null) {
 		Y = 0;
 	}
 	if(X == null) {
 		X = 0;
 	}
+	this.hydraAvailable = false;
+	this.isHydra = false;
 	this.angularThrust = Math.PI * 0.08;
 	this.thrust = 6;
 	sprites_projectiles_Projectile.call(this,X,Y);
+	this.isHydra = this.hydraAvailable = Hydra;
 	this.movementSpeed = 90;
 	this.maxVelocity.set(600,600);
 	this.makeGraphic(3,7,kha__$Color_Color_$Impl_$.fromFloats(0.6,0.9,0.6));
@@ -23596,6 +23603,8 @@ sprites_projectiles_Torpedo.__super__ = sprites_projectiles_Projectile;
 sprites_projectiles_Torpedo.prototype = $extend(sprites_projectiles_Projectile.prototype,{
 	thrust: null
 	,angularThrust: null
+	,isHydra: null
+	,hydraAvailable: null
 	,update: function(dt) {
 		var particleTrailVector = this.velocity.toVector();
 		particleTrailVector.rotate(new n4_math_NPoint(0,0),180);
@@ -23604,6 +23613,17 @@ sprites_projectiles_Torpedo.prototype = $extend(sprites_projectiles_Projectile.p
 		while(_g < 2) {
 			++_g;
 			Registry.get_currentEmitterState().emitter.emitSquare(this.get_center().x,this.get_center().y,Math.random() * 6 | 0,n4_effects_particles_NParticleEmitter.velocitySpread(40,particleTrailVector.x,particleTrailVector.y),n4_util_NColorUtil.randCol(0.4,0.4,0.9,0.1),0.7);
+		}
+		if(new n4_math_NVector(this.x,this.y).distanceTo(new n4_math_NPoint(Registry.PS.player.x,Registry.PS.player.y)) < 400 && this.hydraAvailable) {
+			this.hydraAvailable = false;
+			var _g1 = 0;
+			while(_g1 < 2) {
+				++_g1;
+				var hyd = new sprites_projectiles_Torpedo(this.x,this.y,false);
+				var spray = new n4_math_NPoint(Math.random() * 40 - 20,Math.random() * 40 - 20);
+				hyd.velocity.set(this.velocity.x / 3 + spray.x,this.velocity.y / 3 + spray.y);
+				Registry.PS.projectiles.add(hyd);
+			}
 		}
 		var mA = 0;
 		if(this.x < Registry.PS.player.x) {
