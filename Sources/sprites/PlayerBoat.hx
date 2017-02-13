@@ -21,7 +21,7 @@ class PlayerBoat extends Boat {
 		angularThrust = 0.05 * Math.PI;
 		thrust = 3.5;
 		wrapBounds = false;
-		mass = 8000;
+		mass = 28000;
 		sprayAmount = 8;
 		renderGraphic(16, 36, function (gpx) {
 			var ctx = gpx.g2;

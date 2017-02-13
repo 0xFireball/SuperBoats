@@ -22,7 +22,7 @@ class Warship extends Boat {
 		super(X, Y);
 		thrust = 0.6;
 		wrapBounds = false;
-		mass = 84000;
+		mass = 184000;
 		sprayAmount = 20;
 		spraySpread = 80;
 		angularThrust = 0.027 * Math.PI;

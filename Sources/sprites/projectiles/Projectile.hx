@@ -16,9 +16,14 @@ class Projectile extends NSprite {
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
+		mass = 500;
 	}
 
 	public function explode() {
+		// apply conservation of momentum collision
+		var transferredMomentum = this.velocity.toVector().scale(this.mass / target.mass);
+		target.velocity.addPoint(transferredMomentum);
+
 		this.destroy();
 	}
 
