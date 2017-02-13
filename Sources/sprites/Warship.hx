@@ -92,11 +92,9 @@ class Warship extends Boat {
 	private function shootProjectile(pj:Projectile, vx:Float, vy:Float) {
 		pj.velocity.set(vx, vy);
 		Registry.PS.projectiles.add(pj);
-		var recoilSpeed = pj.momentum / mass;
-		var recoilMotion = new NVector(pj.velocity.x, pj.velocity.y);
-		var recoilVelocity = recoilMotion.normalize().scale(-recoilSpeed);
-		velocity.x += recoilVelocity.x;
-		velocity.y += recoilVelocity.y;
+		var recoil = pj.momentum.scale(1 / mass).negate();
+		velocity.x += recoil.x;
+		velocity.y += recoil.y;
 		if (x > NGame.width) x = x % NGame.width;
 		if (y > NGame.height) y = y % NGame.height;
 		if (x < 0) x += NGame.width;
