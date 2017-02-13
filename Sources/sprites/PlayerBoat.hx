@@ -55,6 +55,8 @@ class PlayerBoat extends Boat {
 			.rotate(new NPoint(0, 0), 180)
 			.toVector().normalize().scale(fTalon.movementSpeed);
 		fTalon.velocity.set(tVec.x, tVec.y);
+		// apply recoil
+		velocity.addPoint(fTalon.momentum.scale(1 / mass).negate());
 		Registry.PS.playerProjectiles.add(fTalon);
 	}
 
