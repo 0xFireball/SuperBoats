@@ -2,6 +2,8 @@ package sprites;
 
 import kha.Color;
 
+import n4.util.NColorUtil;
+import n4.effects.particles.NParticleEmitter;
 import n4.math.NPoint;
 import n4.math.NVector;
 import n4.math.NAngle;
@@ -41,6 +43,14 @@ class PlayerBoat extends Boat {
 			attack();
 			++attackCount;
 			attackTimer = 0;
+		}
+
+		if (damage > 0.2) {
+			for (i in 0...Std.int(24 * damage)) {
+				Registry.PS.explosionEmitter.emitSquare(center.x, center.y, Std.int(Math.random() * 6 + 3),
+					NParticleEmitter.velocitySpread(90),
+				NColorUtil.randCol(0.8, 0.5, 0.2, 0.2), 1.8);
+			}
 		}
 
 		super.update(dt);

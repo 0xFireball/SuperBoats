@@ -21,6 +21,7 @@ class PlayState extends NState implements IEmitterState {
 	public var lowerEmitter(default, null):NParticleEmitter;
 	public var emitter(default, null):NParticleEmitter;
 	public var explosionEmitter(default, null):NParticleEmitter;
+	public var smokeEffectEmitter(default, null):NParticleEmitter;
 	public var helpText(default, null):NEText;
 
 	override public function create() {
@@ -52,6 +53,9 @@ class PlayState extends NState implements IEmitterState {
 
 		explosionEmitter = new NParticleEmitter(120);
 		add(explosionEmitter);
+
+		smokeEffectEmitter = new NParticleEmitter(140);
+		add(smokeEffectEmitter);
 
 		helpText = new NEText(0, NGame.height / 3, "", 40);
 		add(helpText);
