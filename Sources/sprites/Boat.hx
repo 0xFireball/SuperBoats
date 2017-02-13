@@ -28,7 +28,25 @@ class Boat extends NSprite {
 	override public function update(dt:Float) {
 		keepInBounds();
 		drawSpray();
+		manageHealth();
+
 		super.update(dt);
+	}
+
+	private function manageHealth() {
+		if (damage < 0.8) {
+			for (i in 0...Std.int(8 * damage)) {
+				Registry.PS.explosionEmitter.emitSquare(center.x, center.y, Std.int(Math.random() * 6 + 3),
+					NParticleEmitter.velocitySpread(90),
+				NColorUtil.randCol(0.8, 0.5, 0.2, 0.2), 1.8);
+			}
+		}
+
+		if (damage <= 0) {
+			// dead!
+			explode();
+			destroy();
+		}
 	}
 
 	private function drawSpray() {
@@ -40,6 +58,14 @@ class Boat extends NSprite {
 			Registry.PS.lowerEmitter.emitSquare(center.x, center.y, Std.int(Math.random() * 10) + 1,
 				NParticleEmitter.velocitySpread(spraySpread, particleTrailVector.x, particleTrailVector.y),
 			NColorUtil.randCol(0.2, 0.6, 0.8, 0.2), Math.random() * 1.0);
+		}
+	}
+
+	public function explode() {
+		for (i in 0...50) {
+			Registry.PS.explosionEmitter.emitSquare(center.x, center.y, Std.int(Math.random() * 10) + 1,
+				NParticleEmitter.velocitySpread(spraySpread, velocity.x, velocity.y),
+			NColorUtil.randCol(0.95, 0.95, 0.1, 0.05), Math.random() * 1.0);
 		}
 	}
 

@@ -45,14 +45,6 @@ class PlayerBoat extends Boat {
 			attackTimer = 0;
 		}
 
-		if (damage > 0.2) {
-			for (i in 0...Std.int(24 * damage)) {
-				Registry.PS.explosionEmitter.emitSquare(center.x, center.y, Std.int(Math.random() * 6 + 3),
-					NParticleEmitter.velocitySpread(90),
-				NColorUtil.randCol(0.8, 0.5, 0.2, 0.2), 1.8);
-			}
-		}
-
 		super.update(dt);
 	}
 
