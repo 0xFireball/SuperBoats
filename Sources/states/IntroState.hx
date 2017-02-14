@@ -9,7 +9,11 @@ import n4.entities.NSprite;
 import n4.util.NAxes;
 import n4e.ui.NEText;
 
+import util.PreloaderSprite;
+
 class IntroState extends NState {
+
+	private var preloader:PreloaderSprite;
 
 	override public function create() {
 		if (Registry.mainFont == null) {
@@ -19,6 +23,9 @@ class IntroState extends NState {
 		if (NEText.defaultFont == null) {
 			NEText.defaultFont = Registry.mainFont;
 		}
+
+		preloader = new PreloaderSprite();
+		add(preloader);
 		
 		var titleText = new NEText(20, 20, "SuperBoats", 35, Color.White);
 		add(titleText);
@@ -44,5 +51,9 @@ class IntroState extends NState {
 		});
 
 		super.create();
+	}
+
+	override public function update(dt:Float) {
+		super.update(dt);
 	}
 }
