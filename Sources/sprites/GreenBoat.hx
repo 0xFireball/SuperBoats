@@ -41,4 +41,11 @@ class GreenBoat extends Boat {
 	private function movement() {
 		
 	}
+
+	override public function destroy() {
+		if (this != Registry.PS.player) {
+			Registry.PS.player.allyCount--;
+		}
+		super.destroy();
+	}
 }

@@ -34,11 +34,10 @@ class PlayState extends NState implements IEmitterState {
 		lowerEmitter = new NParticleEmitter(115);
 		add(lowerEmitter);
 
+		allies = new NTypedGroup<GreenBoat>();
 		player = new PlayerBoat(Math.random() * NGame.width, Math.random() * NGame.height);
 		player.angle = Math.random() * Math.PI * 2;
-		add(player);
-
-		allies = new NTypedGroup<GreenBoat>();
+		allies.add(player);
 		add(allies);
 
 		warships = new NTypedGroup<Warship>();
@@ -70,7 +69,6 @@ class PlayState extends NState implements IEmitterState {
 
 	override public function update(dt:Float) {
 		// NGame.collide(player, warships);
-		NGame.overlap(player, projectiles, playerHitProjectile);
 		NGame.overlap(allies, projectiles, allyHitProjectile);
 		NGame.overlap(warships, playerProjectiles, warshipHitProjectile);
 
@@ -92,10 +90,6 @@ class PlayState extends NState implements IEmitterState {
 				NGame.switchState(new YouWonState());
 			});
 		}
-	}
-
-	private function playerHitProjectile(p:PlayerBoat, j:Projectile) {
-		j.hitSprite(p);
 	}
 
 	private function allyHitProjectile(p:GreenBoat, j:Projectile) {

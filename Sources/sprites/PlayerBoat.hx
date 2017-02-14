@@ -16,6 +16,9 @@ class PlayerBoat extends GreenBoat {
 	private var attackTimer:Float = 0;
 	private var attackCount:Int = 0;
 
+	public var allyCount:Int = 0;
+	public var maxAllyCount:Int = 4;
+
 	private var allySpawnFrequency:Int = 800;
 
 	private var attacking:Bool = false;
@@ -56,8 +59,9 @@ class PlayerBoat extends GreenBoat {
 	}
 
 	private function spawnAllies() {
-		if (Std.int(Math.random() * allySpawnFrequency) == 4) {
+		if (allyCount < maxAllyCount && Std.int(Math.random() * allySpawnFrequency) == 4) {
 			// spawn ally
+			++allyCount;
 			var ally = new GreenBoat(0, Math.random() * NGame.height);
 			Registry.PS.allies.add(ally);
 		}

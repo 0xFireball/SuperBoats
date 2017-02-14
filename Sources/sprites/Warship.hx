@@ -43,14 +43,27 @@ class Warship extends Boat {
 		super.update(dt);
 	}
 
+	private function acquireTarget():GreenBoat {
+		var target:GreenBoat = null;
+		var minDistance = NGame.hypot * 2;
+		Registry.PS.allies.forEachActive(function (boat) {
+			var dist = boat.center.distanceTo(center);
+			if (dist < minDistance) {
+				minDistance = dist;
+				target = boat;
+			}
+		});
+		return target;
+	}
+
 	private function attackPlayer() {
-		var player = Registry.PS.player;
-		var dist = center.toVector().subtractPoint(player.center);
+		var target = acquireTarget();
+		var dist = center.toVector().subtractPoint(target.center);
 		var dx = dist.x;
 		var dy = dist.y;
 		if (attackCount % 3 == 0) {
 			var projectile:Projectile = null;
-			projectile = new Cannonball(x + width / 2, y + height / 2, Registry.PS.player);
+			projectile = new Cannonball(x + width / 2, y + height / 2, target);
 			var bulletSp = projectile.movementSpeed;
 			var m = -Math.sqrt(dx * dx + dy * dy);
 			var vx = dx * bulletSp / m;
@@ -65,7 +78,7 @@ class Warship extends Boat {
 		if (attackCount % 7 == 0) {
 			var projectile:Projectile = null;
 			var hydraRng:Bool = Std.int(Math.random() * 7) == 4;
-			projectile = new Torpedo(x + width / 2, y + height / 2, Registry.PS.player, hydraRng);
+			projectile = new Torpedo(x + width / 2, y + height / 2, target, hydraRng);
 			var bulletSp = projectile.movementSpeed;
 			var m = -Math.sqrt(dx * dx + dy * dy);
 			var vx = dx * bulletSp / m;
@@ -110,11 +123,12 @@ class Warship extends Boat {
 		// process AI logic
 		// if going near the edge, point to the center
 		var targetSetpoint:NVector = null;
-		var playerPosition = Registry.PS.player.center.toVector();
+		var target = acquireTarget();
+		var targetPos = target.center.toVector();
 		// targetSetpoint = new NVector(NGame.width / 2, NGame.height / 2);
 		var fieldHypot = Math.sqrt(NGame.width * NGame.width + NGame.height * NGame.height);
-		if (selfPosition.distanceTo(playerPosition) > fieldHypot / 3) {
-			targetSetpoint = playerPosition;
+		if (selfPosition.distanceTo(targetPos) > fieldHypot / 3) {
+			targetSetpoint = targetPos;
 		} else if (x < NGame.width / 4 || x > NGame.width * (3 / 4)
 			|| y < NGame.height / 4 || y > NGame.height * (3 / 4)) {
 			targetSetpoint = new NVector(NGame.width / 2, NGame.height / 2);
