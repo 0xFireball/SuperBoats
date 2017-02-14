@@ -80,7 +80,7 @@ class Boat extends NSprite {
 	public function explode() {
 		for (i in 0...50) {
 			Registry.PS.explosionEmitter.emitSquare(center.x, center.y, Std.int(Math.random() * 10) + 1,
-				NParticleEmitter.velocitySpread(spraySpread, velocity.x, velocity.y),
+				NParticleEmitter.velocitySpread(spraySpread, velocity.x / 4, velocity.y / 4),
 			NColorUtil.randCol(0.95, 0.95, 0.1, 0.05), Math.random() * 1.0);
 		}
 	}
