@@ -6,7 +6,7 @@ import n4.NGame;
 
 class Mothership extends Warship {
 
-	private var minionSpawnChance = 220;
+	private var minionSpawnChance = 720;
 	public var minionCount:Int = 0;
 	public var maxMinionCount:Int = 2;
 

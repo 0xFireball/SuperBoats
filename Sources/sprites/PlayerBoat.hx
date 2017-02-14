@@ -11,17 +11,19 @@ import n4.NGame;
 
 import sprites.projectiles.*;
 
-class PlayerBoat extends Boat {
+class PlayerBoat extends GreenBoat {
 	private static var attackTime:Float = 1.0;
 	private var attackTimer:Float = 0;
 	private var attackCount:Int = 0;
+
+	private var allySpawnFrequency:Int = 800;
 
 	private var attacking:Bool = false;
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
 
-		maxHealth = health = 120000;
+		maxHealth = health = 220000;
 		hullShieldMax = hullShieldIntegrity = 72000;
 		hullShieldRegen = 100;
 		angularThrust = 0.05 * Math.PI;
@@ -41,7 +43,6 @@ class PlayerBoat extends Boat {
 	}
 
 	override public function update(dt:Float) {
-		movement();
 		attackTimer += dt;
 		if (attackTimer > attackTime && attacking) {
 			attack();
@@ -49,7 +50,17 @@ class PlayerBoat extends Boat {
 			attackTimer = 0;
 		}
 
+		spawnAllies();
+
 		super.update(dt);
+	}
+
+	private function spawnAllies() {
+		if (Std.int(Math.random() * allySpawnFrequency) == 4) {
+			// spawn ally
+			var ally = new GreenBoat(0, Math.random() * NGame.height);
+			Registry.PS.allies.add(ally);
+		}
 	}
 
 	public function attack() {
@@ -66,7 +77,7 @@ class PlayerBoat extends Boat {
 		Registry.PS.playerProjectiles.add(fTalon);
 	}
 
-	private function movement() {
+	override private function movement() {
 		var left = false;
 		var up = false;
 		var right = false;
