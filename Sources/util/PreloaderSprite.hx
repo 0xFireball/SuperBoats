@@ -14,6 +14,8 @@ class PreloaderSprite extends NSprite {
 
 	public function new() {
 		super(0, 0);
+		// hide it
+		y = x = -100;
 	}
 
 	public function doIteration() {

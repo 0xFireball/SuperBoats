@@ -45,6 +45,8 @@ class MenuState extends NState implements IEmitterState {
 		madeWithText.x = NGame.width - madeWithText.width * 1.2;
 		madeWithText.y = NGame.height - madeWithText.height * 1.4;
 		add(madeWithText);
+
+		super.create();
 	}
 
 	override public function update(dt:Float) {

@@ -20,7 +20,7 @@ class GameOverState extends NState {
 		add(pbt);
 
 		NGame.timers.setTimer(1400, function() {
-			NGame.switchState(new MenuState());
+			NGame.switchState(Registry.MS);
 		});
 
 		super.create();
