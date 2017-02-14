@@ -3712,10 +3712,10 @@ kha_Shaders.__name__ = true;
 kha_Shaders.init = function() {
 	kha_Shaders.painter_colored_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_colored_fragData"))),"painter_colored_frag");
 	kha_Shaders.painter_colored_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_colored_vertData"))),"painter_colored_vert");
-	kha_Shaders.painter_image_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_vertData"))),"painter_image_vert");
 	kha_Shaders.painter_image_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_fragData"))),"painter_image_frag");
-	kha_Shaders.painter_text_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_vertData"))),"painter_text_vert");
+	kha_Shaders.painter_image_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_vertData"))),"painter_image_vert");
 	kha_Shaders.painter_text_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_fragData"))),"painter_text_frag");
+	kha_Shaders.painter_text_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_vertData"))),"painter_text_vert");
 	kha_Shaders.painter_video_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_fragData"))),"painter_video_frag");
 	kha_Shaders.painter_video_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_vertData"))),"painter_video_vert");
 };
@@ -21158,6 +21158,7 @@ n4_NEntity.prototype = $extend(n4_NBasic.prototype,{
 	,maxAngular: null
 	,health: null
 	,maxHealth: null
+	,invincible: null
 	,mass: null
 	,momentum: null
 	,init: function() {
@@ -21213,6 +21214,11 @@ n4_NEntity.prototype = $extend(n4_NBasic.prototype,{
 		}
 		return this;
 	}
+	,hurt: function(amount) {
+		if(!this.invincible) {
+			this.health -= amount;
+		}
+	}
 	,set_x: function(Value) {
 		return this.x = Value;
 	}
@@ -21263,6 +21269,9 @@ n4_NEntity.prototype = $extend(n4_NBasic.prototype,{
 		this.health = (1 - f) * this.maxHealth;
 		return this.get_damage();
 	}
+	,set_invincible: function(b) {
+		return this.invincible = b;
+	}
 	,__class__: n4_NEntity
 });
 var n4_group_NTypedGroup = function(MaxSize) {
@@ -21306,6 +21315,21 @@ n4_group_NTypedGroup.prototype = $extend(n4_NBasic.prototype,{
 			++i;
 		}
 		return -1;
+	}
+	,firstWhere: function(predicate) {
+		var result = null;
+		var _g = 0;
+		var _g1 = this.members;
+		while(_g < _g1.length) {
+			var m = _g1[_g];
+			++_g;
+			if(m != null && m.exists) {
+				if(predicate(m)) {
+					result = m;
+				}
+			}
+		}
+		return result;
 	}
 	,forEachActive: function(action) {
 		var _g = 0;
@@ -21509,6 +21533,9 @@ n4_NGame.overlap = function(ObjectOrGroup1,ObjectOrGroup2,NotifyCallback,Process
 	var result = quadTree.execute();
 	quadTree.destroy();
 	return result;
+};
+n4_NGame.get_hypot = function() {
+	return Math.sqrt(n4_NGame.width * n4_NGame.width + n4_NGame.width * n4_NGame.width);
 };
 var n4_entities_NSprite = function(X,Y,Graphic) {
 	if(Y == null) {
@@ -23161,6 +23188,9 @@ var sprites_Boat = function(X,Y) {
 	if(X == null) {
 		X = 0;
 	}
+	this.hullShieldRegen = 100;
+	this.hullShieldIntegrity = 0;
+	this.hullShieldMax = 60000;
 	this.wrapBounds = true;
 	this.spraySpread = 40;
 	this.sprayAmount = 5;
@@ -23184,11 +23214,33 @@ sprites_Boat.prototype = $extend(n4_entities_NSprite.prototype,{
 	,sprayAmount: null
 	,spraySpread: null
 	,wrapBounds: null
+	,hullShieldMax: null
+	,hullShieldIntegrity: null
+	,hullShieldRegen: null
 	,update: function(dt) {
 		this.keepInBounds();
 		this.drawSpray();
 		this.manageHealth();
+		this.powerShield();
 		n4_entities_NSprite.prototype.update.call(this,dt);
+	}
+	,powerShield: function() {
+		if(this.hullShieldIntegrity > 0) {
+			this.hullShieldIntegrity += this.hullShieldRegen;
+			if(this.hullShieldIntegrity > this.hullShieldMax) {
+				this.hullShieldIntegrity = this.hullShieldMax;
+			}
+		}
+	}
+	,hurt: function(amount) {
+		if(this.hullShieldIntegrity > 0) {
+			this.hullShieldIntegrity -= amount;
+			if(this.hullShieldIntegrity < 0) {
+				this.hullShieldIntegrity = 0;
+			}
+		} else {
+			n4_entities_NSprite.prototype.hurt.call(this,amount);
+		}
 	}
 	,manageHealth: function() {
 		if(this.get_damage() > 0.2 && this.get_damage() <= 0.5) {
@@ -23325,7 +23377,7 @@ sprites_DummyBoat.prototype = $extend(n4_entities_NSprite.prototype,{
 	}
 	,__class__: sprites_DummyBoat
 });
-var sprites_PlayerBoat = function(X,Y) {
+var sprites_GreenBoat = function(X,Y) {
 	if(Y == null) {
 		Y = 0;
 	}
@@ -23335,77 +23387,112 @@ var sprites_PlayerBoat = function(X,Y) {
 	this.attacking = false;
 	this.attackCount = 0;
 	this.attackTimer = 0;
+	this.attackTime = 1.0;
 	var _gthis = this;
 	sprites_Boat.call(this,X,Y);
-	this.maxHealth = this.health = 120000;
+	this.maxHealth = this.health = 170000;
+	this.hullShieldMax = this.hullShieldIntegrity = 54000;
+	this.hullShieldRegen = 100;
+	this.attackTime = 0.7;
 	this.angularThrust = 0.05 * Math.PI;
 	this.thrust = 3.5;
 	this.wrapBounds = false;
-	this.mass = 28000;
+	this.mass = 26000;
 	this.sprayAmount = 8;
-	this.renderGraphic(16,36,function(gpx) {
+	this.renderGraphic(14,32,function(gpx) {
 		var ctx = gpx.get_g2();
 		ctx.begin();
-		ctx.set_color(kha__$Color_Color_$Impl_$.fromFloats(0.1,0.3,0.9));
+		ctx.set_color(kha__$Color_Color_$Impl_$.fromFloats(0.1,0.9,0.3));
 		ctx.fillRect(0,0,_gthis.get_width(),_gthis.get_height());
-		ctx.set_color(kha__$Color_Color_$Impl_$.fromFloats(0.1,0.5,0.9));
+		ctx.set_color(kha__$Color_Color_$Impl_$.fromFloats(0.1,0.9,0.5));
 		ctx.fillRect(_gthis.get_width() / 3,_gthis.get_height() * 0.75,_gthis.get_width() / 3,_gthis.get_height() / 4);
 		ctx.end();
-	},"playerboat");
+	},"greenboat");
 };
-$hxClasses["sprites.PlayerBoat"] = sprites_PlayerBoat;
-sprites_PlayerBoat.__name__ = true;
-sprites_PlayerBoat.__super__ = sprites_Boat;
-sprites_PlayerBoat.prototype = $extend(sprites_Boat.prototype,{
-	attackTimer: null
+$hxClasses["sprites.GreenBoat"] = sprites_GreenBoat;
+sprites_GreenBoat.__name__ = true;
+sprites_GreenBoat.__super__ = sprites_Boat;
+sprites_GreenBoat.prototype = $extend(sprites_Boat.prototype,{
+	attackTime: null
+	,attackTimer: null
 	,attackCount: null
 	,attacking: null
 	,update: function(dt) {
 		this.movement();
 		this.attackTimer += dt;
-		if(this.attackTimer > sprites_PlayerBoat.attackTime && this.attacking) {
-			this.attack();
+		if(this.attackTimer > this.attackTime && this.attacking) {
+			this.autoFire();
 			++this.attackCount;
 			this.attackTimer = 0;
 		}
 		sprites_Boat.prototype.update.call(this,dt);
 	}
-	,attack: function() {
+	,autoFire: function() {
+		var target = this.acquireTarget();
+		if(target == null) {
+			return;
+		}
 		var velOpp = this.velocity.toVector().normalize().rotate(new n4_math_NPoint(0,0),180).scale(20);
-		var fTalon = new sprites_projectiles_Talon(this.x + velOpp.x,this.y + velOpp.y,Registry.PS.mothership,false);
-		var _this = new n4_math_NVector(fTalon.x,fTalon.y);
-		var Y = Registry.PS.mothership.y;
-		var _g = _this;
-		_g.set_x(_g.x - Registry.PS.mothership.x);
-		var _g1 = _this;
-		_g1.set_y(_g1.y - Y);
-		var tVec = _this.rotate(new n4_math_NPoint(0,0),180).toVector().normalize().scale(fTalon.movementSpeed);
+		var fTalon = new sprites_projectiles_Talon(this.x + velOpp.x,this.y + velOpp.y,target,false);
+		var tVec = fTalon.get_center().toVector().subtractPoint(target.get_center()).rotate(new n4_math_NPoint(0,0),180).toVector().normalize().scale(fTalon.movementSpeed);
 		fTalon.velocity.set(tVec.x,tVec.y);
 		var tmp = this.velocity;
-		var _this1 = fTalon.get_momentum().scale(1 / this.mass);
-		_this1.set_x(_this1.x * -1);
-		_this1.set_y(_this1.y * -1);
-		tmp.addPoint(_this1);
+		var _this = fTalon.get_momentum().scale(1 / this.mass);
+		_this.set_x(_this.x * -1);
+		_this.set_y(_this.y * -1);
+		tmp.addPoint(_this);
 		Registry.PS.playerProjectiles.add(fTalon);
 	}
+	,acquireTarget: function() {
+		var _gthis = this;
+		var target = null;
+		var minDistance = n4_NGame.get_hypot() * 2;
+		Registry.PS.warships.forEachActive(function(boat) {
+			var dist = boat.get_center().distanceTo(_gthis.get_center());
+			if(dist < minDistance) {
+				minDistance = dist;
+				target = boat;
+			}
+		});
+		return target;
+	}
 	,movement: function() {
+		this.attacking = true;
 		var left = false;
 		var up = false;
 		var right = false;
-		var down = false;
-		left = n4_NGame.keys.pressed(["A","LEFT"]);
-		up = n4_NGame.keys.pressed(["W","UP"]);
-		right = n4_NGame.keys.pressed(["D","RIGHT"]);
-		down = n4_NGame.keys.pressed(["S","DOWN"]);
+		var facingAngle = this.angle;
+		var selfPosition = new n4_math_NVector(this.x,this.y);
+		var targetSetpoint = null;
+		var target = this.acquireTarget();
+		if(target == null) {
+			return;
+		}
+		var targetPos = target.get_center().toVector();
+		var fieldHypot = Math.sqrt(n4_NGame.width * n4_NGame.width + n4_NGame.height * n4_NGame.height);
+		if(selfPosition.distanceTo(targetPos) > fieldHypot / 3) {
+			targetSetpoint = targetPos;
+		} else if(this.x < n4_NGame.width / 4 || this.x > n4_NGame.width * 0.75 || this.y < n4_NGame.height / 4 || this.y > n4_NGame.height * 0.75) {
+			targetSetpoint = new n4_math_NVector(n4_NGame.width / 2,n4_NGame.height / 2);
+		}
+		if(targetSetpoint != null) {
+			var nv = new n4_math_NVector(this.x,this.y).clone();
+			nv.subtractPoint(targetSetpoint);
+			var angleToSetpoint = new n4_math_NVector(this.x,this.y).angleBetween(targetSetpoint) * (Math.PI / 180);
+			if(Math.abs(facingAngle - angleToSetpoint) > Math.PI / 8) {
+				if(facingAngle < angleToSetpoint) {
+					right = true;
+				} else if(facingAngle > angleToSetpoint) {
+					left = true;
+				}
+			} else if(Math.sqrt(nv.x * nv.x + nv.y * nv.y) > fieldHypot / 4) {
+				up = true;
+			}
+		}
 		if(left && right) {
 			right = false;
 			left = false;
 		}
-		if(up && down) {
-			down = false;
-			up = false;
-		}
-		var facingAngle = this.angle;
 		if(left) {
 			this.angularVelocity -= this.angularThrust;
 		} else if(right) {
@@ -23419,14 +23506,17 @@ sprites_PlayerBoat.prototype = $extend(sprites_Boat.prototype,{
 			_g.set_x(_g.x);
 			var _g1 = thrustVector;
 			_g1.set_y(_g1.y + Y);
-		} else if(down) {
-			this.drag.scale(6);
 		}
 		thrustVector.rotate(new n4_math_NPoint(0,0),facingAngle * (180 / Math.PI));
 		this.velocity.addPoint(thrustVector);
-		this.attacking = n4_NGame.keys.pressed(["F"]);
 	}
-	,__class__: sprites_PlayerBoat
+	,destroy: function() {
+		if(this != Registry.PS.player) {
+			Registry.PS.player.allyCount--;
+		}
+		sprites_Boat.prototype.destroy.call(this);
+	}
+	,__class__: sprites_GreenBoat
 });
 var sprites_Warship = function(X,Y) {
 	if(Y == null) {
@@ -23439,7 +23529,6 @@ var sprites_Warship = function(X,Y) {
 	this.cannonMissRange = Math.PI / 8;
 	this.attackCount = 0;
 	this.attackTimer = 0;
-	var _gthis = this;
 	sprites_Boat.call(this,X,Y);
 	this.maxHealth = this.health = 4750000;
 	this.thrust = 0.6;
@@ -23450,15 +23539,6 @@ var sprites_Warship = function(X,Y) {
 	this.angularThrust = 0.027 * Math.PI;
 	this.maxAngular = Math.PI / 5;
 	this.maxVelocity.set(60,60);
-	this.renderGraphic(30,65,function(gpx) {
-		var ctx = gpx.get_g2();
-		ctx.begin();
-		ctx.set_color(kha__$Color_Color_$Impl_$.fromFloats(0.9,0.3,0.1));
-		ctx.fillRect(0,0,_gthis.get_width(),_gthis.get_height());
-		ctx.set_color(kha__$Color_Color_$Impl_$.fromFloats(0.9,0.5,0.1));
-		ctx.fillRect(_gthis.get_width() / 3,_gthis.get_height() * 0.75,_gthis.get_width() / 3,_gthis.get_height() / 4);
-		ctx.end();
-	},"warship");
 };
 $hxClasses["sprites.Warship"] = sprites_Warship;
 sprites_Warship.__name__ = true;
@@ -23478,14 +23558,31 @@ sprites_Warship.prototype = $extend(sprites_Boat.prototype,{
 		}
 		sprites_Boat.prototype.update.call(this,dt);
 	}
+	,acquireTarget: function() {
+		var _gthis = this;
+		var target = null;
+		var minDistance = n4_NGame.get_hypot() * 2;
+		Registry.PS.allies.forEachActive(function(boat) {
+			var dist = boat.get_center().distanceTo(_gthis.get_center());
+			if(dist < minDistance) {
+				minDistance = dist;
+				target = boat;
+			}
+		});
+		return target;
+	}
 	,attackPlayer: function() {
+		var target = this.acquireTarget();
+		if(target == null) {
+			return;
+		}
+		var dist = this.get_center().toVector().subtractPoint(target.get_center());
+		var dx = dist.x;
+		var dy = dist.y;
 		if(this.attackCount % 3 == 0) {
 			var projectile = null;
-			projectile = new sprites_projectiles_Cannonball(this.x + this.get_width() / 2,this.y + this.get_height() / 2,Registry.PS.player);
+			projectile = new sprites_projectiles_Cannonball(this.x + this.get_width() / 2,this.y + this.get_height() / 2,target);
 			var bulletSp = projectile.movementSpeed;
-			var player = Registry.PS.player;
-			var dx = this.x + this.get_width() / 2 - (player.x + player.get_width() / 2);
-			var dy = this.y + this.get_height() / 2 - (player.y + player.get_height() / 2);
 			var m = -Math.sqrt(dx * dx + dy * dy);
 			var vx = dx * bulletSp / m;
 			var vy = dy * bulletSp / m;
@@ -23498,14 +23595,11 @@ sprites_Warship.prototype = $extend(sprites_Boat.prototype,{
 		if(this.attackCount % 7 == 0) {
 			var projectile1 = null;
 			var hydraRng = (Math.random() * 7 | 0) == 4;
-			projectile1 = new sprites_projectiles_Torpedo(this.x + this.get_width() / 2,this.y + this.get_height() / 2,Registry.PS.player,hydraRng);
+			projectile1 = new sprites_projectiles_Torpedo(this.x + this.get_width() / 2,this.y + this.get_height() / 2,target,hydraRng);
 			var bulletSp1 = projectile1.movementSpeed;
-			var player1 = Registry.PS.player;
-			var dx1 = this.x + this.get_width() / 2 - (player1.x + player1.get_width() / 2);
-			var dy1 = this.y + this.get_height() / 2 - (player1.y + player1.get_height() / 2);
-			var m1 = -Math.sqrt(dx1 * dx1 + dy1 * dy1);
-			var vx1 = dx1 * bulletSp1 / m1;
-			var vy1 = dy1 * bulletSp1 / m1;
+			var m1 = -Math.sqrt(dx * dx + dy * dy);
+			var vx1 = dx * bulletSp1 / m1;
+			var vy1 = dy * bulletSp1 / m1;
 			var pVelVec1 = new n4_math_NPoint(vx1,vy1);
 			pVelVec1.rotate(new n4_math_NPoint(0,0),Math.random() * ((Math.random() * this.torpedoMissRange * 2 - this.torpedoMissRange) * (180 / Math.PI)));
 			vx1 = pVelVec1.x;
@@ -23547,10 +23641,14 @@ sprites_Warship.prototype = $extend(sprites_Boat.prototype,{
 		var facingAngle = this.angle;
 		var selfPosition = new n4_math_NVector(this.x,this.y);
 		var targetSetpoint = null;
-		var playerPosition = new n4_math_NVector(Registry.PS.player.x,Registry.PS.player.y);
+		var target = this.acquireTarget();
+		if(target == null) {
+			return;
+		}
+		var targetPos = target.get_center().toVector();
 		var fieldHypot = Math.sqrt(n4_NGame.width * n4_NGame.width + n4_NGame.height * n4_NGame.height);
-		if(selfPosition.distanceTo(playerPosition) > fieldHypot / 3) {
-			targetSetpoint = playerPosition;
+		if(selfPosition.distanceTo(targetPos) > fieldHypot / 3) {
+			targetSetpoint = targetPos;
 		} else if(this.x < n4_NGame.width / 4 || this.x > n4_NGame.width * 0.75 || this.y < n4_NGame.height / 4 || this.y > n4_NGame.height * 0.75) {
 			targetSetpoint = new n4_math_NVector(n4_NGame.width / 2,n4_NGame.height / 2);
 		}
@@ -23591,6 +23689,186 @@ sprites_Warship.prototype = $extend(sprites_Boat.prototype,{
 	}
 	,__class__: sprites_Warship
 });
+var sprites_Minion = function(X,Y) {
+	if(Y == null) {
+		Y = 0;
+	}
+	if(X == null) {
+		X = 0;
+	}
+	var _gthis = this;
+	sprites_Warship.call(this,X,Y);
+	this.maxHealth = this.health = 630000;
+	this.thrust = 0.7;
+	this.wrapBounds = false;
+	this.mass = 89000;
+	this.sprayAmount = 20;
+	this.spraySpread = 80;
+	this.angularThrust = 0.028 * Math.PI;
+	this.maxAngular = Math.PI / 4;
+	this.maxVelocity.set(95,95);
+	this.renderGraphic(20,43,function(gpx) {
+		var ctx = gpx.get_g2();
+		ctx.begin();
+		ctx.set_color(kha__$Color_Color_$Impl_$.fromFloats(0.8,0.4,0.1));
+		ctx.fillRect(0,0,_gthis.get_width(),_gthis.get_height());
+		ctx.set_color(kha__$Color_Color_$Impl_$.fromFloats(0.9,0.5,0.1));
+		ctx.fillRect(_gthis.get_width() / 3,_gthis.get_height() * 0.75,_gthis.get_width() / 3,_gthis.get_height() / 4);
+		ctx.end();
+	},"minion_warship");
+};
+$hxClasses["sprites.Minion"] = sprites_Minion;
+sprites_Minion.__name__ = true;
+sprites_Minion.__super__ = sprites_Warship;
+sprites_Minion.prototype = $extend(sprites_Warship.prototype,{
+	update: function(dt) {
+		sprites_Warship.prototype.update.call(this,dt);
+	}
+	,destroy: function() {
+		Registry.PS.mothership.minionCount--;
+		sprites_Warship.prototype.destroy.call(this);
+	}
+	,__class__: sprites_Minion
+});
+var sprites_Mothership = function(X,Y) {
+	if(Y == null) {
+		Y = 0;
+	}
+	if(X == null) {
+		X = 0;
+	}
+	this.maxMinionCount = 2;
+	this.minionCount = 0;
+	this.minionSpawnChance = 720;
+	var _gthis = this;
+	sprites_Warship.call(this,X,Y);
+	this.maxHealth = this.health = 4750000;
+	this.thrust = 0.6;
+	this.wrapBounds = false;
+	this.mass = 184000;
+	this.sprayAmount = 20;
+	this.spraySpread = 80;
+	this.angularThrust = 0.027 * Math.PI;
+	this.maxAngular = Math.PI / 5;
+	this.maxVelocity.set(60,60);
+	this.renderGraphic(30,65,function(gpx) {
+		var ctx = gpx.get_g2();
+		ctx.begin();
+		ctx.set_color(kha__$Color_Color_$Impl_$.fromFloats(0.9,0.3,0.1));
+		ctx.fillRect(0,0,_gthis.get_width(),_gthis.get_height());
+		ctx.set_color(kha__$Color_Color_$Impl_$.fromFloats(0.9,0.5,0.1));
+		ctx.fillRect(_gthis.get_width() / 3,_gthis.get_height() * 0.75,_gthis.get_width() / 3,_gthis.get_height() / 4);
+		ctx.end();
+	},"main_warship");
+};
+$hxClasses["sprites.Mothership"] = sprites_Mothership;
+sprites_Mothership.__name__ = true;
+sprites_Mothership.__super__ = sprites_Warship;
+sprites_Mothership.prototype = $extend(sprites_Warship.prototype,{
+	minionSpawnChance: null
+	,minionCount: null
+	,maxMinionCount: null
+	,update: function(dt) {
+		if(this.minionCount < this.maxMinionCount && (Math.random() * this.minionSpawnChance | 0) == 4) {
+			this.minionCount++;
+			var minionDist = n4_NGame.get_hypot() / 4;
+			var minion = new sprites_Minion(this.get_center().x + Math.random() * minionDist,this.get_center().y + Math.random() * minionDist);
+			minion.velocity.set(Math.random() * 100,Math.random() * 100);
+			Registry.PS.warships.add(minion);
+		}
+		sprites_Warship.prototype.update.call(this,dt);
+	}
+	,__class__: sprites_Mothership
+});
+var sprites_PlayerBoat = function(X,Y) {
+	if(Y == null) {
+		Y = 0;
+	}
+	if(X == null) {
+		X = 0;
+	}
+	this.allySpawnFrequency = 800;
+	this.maxAllyCount = 4;
+	this.allyCount = 0;
+	var _gthis = this;
+	sprites_GreenBoat.call(this,X,Y);
+	this.maxHealth = this.health = 220000;
+	this.hullShieldMax = this.hullShieldIntegrity = 72000;
+	this.hullShieldRegen = 100;
+	this.attackTime = 1.0;
+	this.angularThrust = 0.05 * Math.PI;
+	this.thrust = 3.5;
+	this.wrapBounds = false;
+	this.mass = 28000;
+	this.sprayAmount = 8;
+	this.renderGraphic(16,36,function(gpx) {
+		var ctx = gpx.get_g2();
+		ctx.begin();
+		ctx.set_color(kha__$Color_Color_$Impl_$.fromFloats(0.1,0.3,0.9));
+		ctx.fillRect(0,0,_gthis.get_width(),_gthis.get_height());
+		ctx.set_color(kha__$Color_Color_$Impl_$.fromFloats(0.1,0.5,0.9));
+		ctx.fillRect(_gthis.get_width() / 3,_gthis.get_height() * 0.75,_gthis.get_width() / 3,_gthis.get_height() / 4);
+		ctx.end();
+	},"playerboat");
+};
+$hxClasses["sprites.PlayerBoat"] = sprites_PlayerBoat;
+sprites_PlayerBoat.__name__ = true;
+sprites_PlayerBoat.__super__ = sprites_GreenBoat;
+sprites_PlayerBoat.prototype = $extend(sprites_GreenBoat.prototype,{
+	allyCount: null
+	,maxAllyCount: null
+	,allySpawnFrequency: null
+	,update: function(dt) {
+		this.spawnAllies();
+		sprites_GreenBoat.prototype.update.call(this,dt);
+	}
+	,spawnAllies: function() {
+		if(this.allyCount < this.maxAllyCount && (Math.random() * this.allySpawnFrequency | 0) == 4) {
+			++this.allyCount;
+			var ally = new sprites_GreenBoat(0,Math.random() * n4_NGame.height);
+			Registry.PS.allies.add(ally);
+		}
+	}
+	,movement: function() {
+		var left = false;
+		var up = false;
+		var right = false;
+		var down = false;
+		left = n4_NGame.keys.pressed(["A","LEFT"]);
+		up = n4_NGame.keys.pressed(["W","UP"]);
+		right = n4_NGame.keys.pressed(["D","RIGHT"]);
+		down = n4_NGame.keys.pressed(["S","DOWN"]);
+		if(left && right) {
+			right = false;
+			left = false;
+		}
+		if(up && down) {
+			down = false;
+			up = false;
+		}
+		var facingAngle = this.angle;
+		if(left) {
+			this.angularVelocity -= this.angularThrust;
+		} else if(right) {
+			this.angularVelocity += this.angularThrust;
+		}
+		var thrustVector = new n4_math_NVector(0,0);
+		this.drag.set(15,15);
+		if(up) {
+			var Y = -this.thrust;
+			var _g = thrustVector;
+			_g.set_x(_g.x);
+			var _g1 = thrustVector;
+			_g1.set_y(_g1.y + Y);
+		} else if(down) {
+			this.drag.scale(6);
+		}
+		thrustVector.rotate(new n4_math_NPoint(0,0),facingAngle * (180 / Math.PI));
+		this.velocity.addPoint(thrustVector);
+		this.attacking = n4_NGame.keys.pressed(["F"]);
+	}
+	,__class__: sprites_PlayerBoat
+});
 var sprites_projectiles_Projectile = function(X,Y) {
 	if(Y == null) {
 		Y = 0;
@@ -23625,8 +23903,7 @@ sprites_projectiles_Projectile.prototype = $extend(n4_entities_NSprite.prototype
 		this.hitSprite(this.target);
 	}
 	,hitSprite: function(sprite) {
-		var damageDealt = this.calculateDamage();
-		sprite.health -= damageDealt;
+		sprite.hurt(this.calculateDamage());
 		this.explode();
 	}
 	,update: function(dt) {
@@ -23810,7 +24087,7 @@ sprites_projectiles_Torpedo.prototype = $extend(sprites_projectiles_Projectile.p
 			++_g;
 			Registry.get_currentEmitterState().emitter.emitSquare(this.get_center().x,this.get_center().y,(Math.random() * 6 | 0) + 1,n4_effects_particles_NParticleEmitter.velocitySpread(40,particleTrailVector.x,particleTrailVector.y),n4_util_NColorUtil.randCol(0.4,0.4,0.9,0.1),0.7);
 		}
-		if(new n4_math_NVector(this.x,this.y).distanceTo(new n4_math_NPoint(this.target.x,this.target.y)) < 400 && this.hydraAvailable) {
+		if(new n4_math_NVector(this.x,this.y).distanceTo(this.target.get_center()) < 400 && this.hydraAvailable) {
 			this.hydraAvailable = false;
 			var _g1 = 0;
 			while(_g1 < 2) {
@@ -24024,6 +24301,7 @@ states_PlayState.__interfaces__ = [states_IEmitterState];
 states_PlayState.__super__ = n4_NState;
 states_PlayState.prototype = $extend(n4_NState.prototype,{
 	player: null
+	,allies: null
 	,warships: null
 	,mothership: null
 	,projectiles: null
@@ -24038,11 +24316,13 @@ states_PlayState.prototype = $extend(n4_NState.prototype,{
 		this.set_bgColor(kha__$Color_Color_$Impl_$._new(-16302254));
 		this.lowerEmitter = new n4_effects_particles_NParticleEmitter(115);
 		this.add(this.lowerEmitter);
+		this.allies = new n4_group_NTypedGroup();
 		this.player = new sprites_PlayerBoat(Math.random() * n4_NGame.width,Math.random() * n4_NGame.height);
 		this.player.set_angle(Math.random() * Math.PI * 2);
-		this.add(this.player);
+		this.allies.add(this.player);
+		this.add(this.allies);
 		this.warships = new n4_group_NTypedGroup();
-		this.mothership = new sprites_Warship(Math.random() * n4_NGame.width,Math.random() * n4_NGame.height);
+		this.mothership = new sprites_Mothership(Math.random() * n4_NGame.width,Math.random() * n4_NGame.height);
 		this.mothership.set_angle(Math.random() * Math.PI * 2);
 		this.warships.add(this.mothership);
 		this.add(this.warships);
@@ -24061,8 +24341,8 @@ states_PlayState.prototype = $extend(n4_NState.prototype,{
 		n4_NState.prototype.create.call(this);
 	}
 	,update: function(dt) {
-		n4_NGame.overlap(this.player,this.projectiles,$bind(this,this.playerHitProjectile));
-		n4_NGame.overlap(this.mothership,this.playerProjectiles,$bind(this,this.mothershipHitProjectile));
+		n4_NGame.overlap(this.allies,this.projectiles,$bind(this,this.allyHitProjectile));
+		n4_NGame.overlap(this.warships,this.playerProjectiles,$bind(this,this.warshipHitProjectile));
 		this.checkGameStatus();
 		n4_NState.prototype.update.call(this,dt);
 	}
@@ -24078,11 +24358,11 @@ states_PlayState.prototype = $extend(n4_NState.prototype,{
 			});
 		}
 	}
-	,playerHitProjectile: function(p,j) {
+	,allyHitProjectile: function(p,j) {
 		j.hitSprite(p);
 	}
-	,mothershipHitProjectile: function(m,j) {
-		j.hitSprite(m);
+	,warshipHitProjectile: function(w,j) {
+		j.hitSprite(w);
 	}
 	,__class__: states_PlayState
 });
@@ -24979,10 +25259,10 @@ kha_Scheduler.maxframetime = 0.5;
 kha_Scheduler.startTime = 0;
 kha_Shaders.painter_colored_fragData = "s198:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdmFyeWluZyBoaWdocCB2ZWM0IGZyYWdtZW50Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9GcmFnRGF0YVswXSA9IGZyYWdtZW50Q29sb3I7Cn0KCg";
 kha_Shaders.painter_colored_vertData = "s331:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgZnJhZ21lbnRDb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
-kha_Shaders.painter_image_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_Shaders.painter_image_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
-kha_Shaders.painter_text_vertData = "s436:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgdGV4Q29vcmQgPSB0ZXhQb3NpdGlvbjsKICAgIGZyYWdtZW50Q29sb3IgPSB2ZXJ0ZXhDb2xvcjsKfQoK";
+kha_Shaders.painter_image_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_Shaders.painter_text_fragData = "s351:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWM0IGZyYWdtZW50Q29sb3I7CnZhcnlpbmcgaGlnaHAgdmVjMiB0ZXhDb29yZDsKCnZvaWQgbWFpbigpCnsKICAgIGdsX0ZyYWdEYXRhWzBdID0gdmVjNChmcmFnbWVudENvbG9yLnh5eiwgdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpLnggKiBmcmFnbWVudENvbG9yLncpOwp9Cgo";
+kha_Shaders.painter_text_vertData = "s436:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgdGV4Q29vcmQgPSB0ZXhQb3NpdGlvbjsKICAgIGZyYWdtZW50Q29sb3IgPSB2ZXJ0ZXhDb2xvcjsKfQoK";
 kha_Shaders.painter_video_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
 kha_Shaders.painter_video_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_System.renderListeners = [];
@@ -25153,7 +25433,6 @@ n4_system_NLinkedList._NUM_CACHED_N_LIST = 0;
 n4_system_NQuadTree.A_LIST = 0;
 n4_system_NQuadTree.B_LIST = 1;
 n4_system_NQuadTree._NUM_CACHED_QUAD_TREES = 0;
-sprites_PlayerBoat.attackTime = 1.0;
 sprites_Warship.attackTime = 0.2;
 tweenxcore_Easing.PI = 3.1415926535897932384626433832795;
 tweenxcore_Easing.PI_H = 1.5707963267948966;
