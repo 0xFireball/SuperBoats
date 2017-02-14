@@ -42,12 +42,19 @@ class Boat extends NSprite {
 					NParticleEmitter.velocitySpread(90),
 				NColorUtil.randCol(0.3, 0.3, 0.3, 0.05), 1.8);
 			}
-		} else if (damage <= 0.5) {
+		} else if (damage <= 0.65 && damage > 0.3) {
 			// fire
 			for (i in 0...Std.int(8 * damage)) {
 				Registry.PS.explosionEmitter.emitSquare(center.x, center.y, Std.int(Math.random() * 6 + 3),
 					NParticleEmitter.velocitySpread(90),
 				NColorUtil.randCol(0.8, 0.5, 0.2, 0.2), 1.8);
+			}
+		} else if (damage <= 0.3) {
+			// bright fire
+			for (i in 0...Std.int(12 * damage)) {
+				Registry.PS.explosionEmitter.emitSquare(center.x, center.y, Std.int(Math.random() * 6 + 3),
+					NParticleEmitter.velocitySpread(90),
+				NColorUtil.randCol(0.9, 0.3, 0.2, 0.1), 2.2);
 			}
 		}
 
