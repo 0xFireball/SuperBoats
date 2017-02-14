@@ -24,7 +24,7 @@ class Projectile extends NSprite {
 	 * How much to scale the damage by.
 	 * Subclasses should not change this.
 	 */
-	private var damageScale:Float = (1 / 6);
+	private var damageScale:Float = (1 / 24);
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
@@ -52,6 +52,7 @@ class Projectile extends NSprite {
 		// deal damage
 		var damageDealt = calculateDamage();
 		sprite.health -= damageDealt;
+		// trace('dealt ${damageDealt} damage');
 		// explode
 		explode();
 	}

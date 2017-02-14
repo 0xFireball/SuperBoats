@@ -36,6 +36,14 @@ class Boat extends NSprite {
 
 	private function manageHealth() {
 		if (damage < 0.8) {
+			// smoke
+			for (i in 0...Std.int(4 * damage)) {
+				Registry.PS.explosionEmitter.emitSquare(center.x, center.y, Std.int(Math.random() * 6 + 3),
+					NParticleEmitter.velocitySpread(90),
+				NColorUtil.randCol(0.3, 0.3, 0.3, 0.05), 1.8);
+			}
+		} else if (damage < 0.5) {
+			// fire
 			for (i in 0...Std.int(8 * damage)) {
 				Registry.PS.explosionEmitter.emitSquare(center.x, center.y, Std.int(Math.random() * 6 + 3),
 					NParticleEmitter.velocitySpread(90),
