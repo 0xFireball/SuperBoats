@@ -29,15 +29,6 @@ class Warship extends Boat {
 		angularThrust = 0.027 * Math.PI;
 		maxAngular = Math.PI / 5;
 		maxVelocity.set(60, 60);
-		renderGraphic(30, 65, function (gpx) {
-			var ctx = gpx.g2;
-			ctx.begin();
-			ctx.color = Color.fromFloats(0.9, 0.3, 0.1);
-			ctx.fillRect(0, 0, width, height);
-			ctx.color = Color.fromFloats(0.9, 0.5, 0.1);
-			ctx.fillRect(width / 3, height * (3 / 4), width / 3, height / 4);
-			ctx.end();
-		}, "warship");
 	}
 
 	override public function update(dt:Float) {
