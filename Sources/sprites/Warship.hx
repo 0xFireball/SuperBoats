@@ -53,13 +53,14 @@ class Warship extends Boat {
 	}
 
 	private function attackPlayer() {
+		var player = Registry.PS.player;
+		var dist = center.toVector().subtractPoint(player.center);
+		var dx = dist.x;
+		var dy = dist.y;
 		if (attackCount % 3 == 0) {
 			var projectile:Projectile = null;
 			projectile = new Cannonball(x + width / 2, y + height / 2, Registry.PS.player);
 			var bulletSp = projectile.movementSpeed;
-			var player = Registry.PS.player;
-			var dx = (x + width / 2) - (player.x + player.width / 2);
-			var dy = (y + height / 2) - (player.y + player.height / 2);
 			var m = -Math.sqrt(dx * dx + dy * dy);
 			var vx = dx * bulletSp / m;
 			var vy = dy * bulletSp / m;
@@ -75,9 +76,6 @@ class Warship extends Boat {
 			var hydraRng:Bool = Std.int(Math.random() * 7) == 4;
 			projectile = new Torpedo(x + width / 2, y + height / 2, Registry.PS.player, hydraRng);
 			var bulletSp = projectile.movementSpeed;
-			var player = Registry.PS.player;
-			var dx = (x + width / 2) - (player.x + player.width / 2);
-			var dy = (y + height / 2) - (player.y + player.height / 2);
 			var m = -Math.sqrt(dx * dx + dy * dy);
 			var vx = dx * bulletSp / m;
 			var vy = dy * bulletSp / m;
@@ -121,7 +119,7 @@ class Warship extends Boat {
 		// process AI logic
 		// if going near the edge, point to the center
 		var targetSetpoint:NVector = null;
-		var playerPosition = new NVector(Registry.PS.player.x, Registry.PS.player.y);
+		var playerPosition = Registry.PS.player.center.toVector();
 		// targetSetpoint = new NVector(NGame.width / 2, NGame.height / 2);
 		var fieldHypot = Math.sqrt(NGame.width * NGame.width + NGame.height * NGame.height);
 		if (selfPosition.distanceTo(playerPosition) > fieldHypot / 3) {

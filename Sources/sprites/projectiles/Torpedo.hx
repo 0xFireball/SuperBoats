@@ -37,8 +37,8 @@ class Torpedo extends Projectile {
 				NParticleEmitter.velocitySpread(40, particleTrailVector.x, particleTrailVector.y),
 			NColorUtil.randCol(0.4, 0.4, 0.9, 0.1), 0.7);
 		}
-		var distToPlayer = new NVector(x, y).distanceTo(new NPoint(target.x, target.y));
-		if (distToPlayer < 400 && hydraAvailable) {
+		var distToTarget = new NVector(x, y).distanceTo(target.center);
+		if (distToTarget < 400 && hydraAvailable) {
 			hydraAvailable = false;
 			var hydraCount = 3;
 			for (i in 0...(hydraCount - 1)) {
