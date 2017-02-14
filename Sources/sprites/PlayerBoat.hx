@@ -22,6 +22,8 @@ class PlayerBoat extends Boat {
 		super(X, Y);
 
 		maxHealth = health = 120000;
+		hullShieldMax = hullShieldIntegrity = 72000;
+		hullShieldRegen = 100;
 		angularThrust = 0.05 * Math.PI;
 		thrust = 3.5;
 		wrapBounds = false;

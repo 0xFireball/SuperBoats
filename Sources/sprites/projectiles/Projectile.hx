@@ -51,7 +51,7 @@ class Projectile extends NSprite {
 	public function hitSprite(sprite:NSprite) {
 		// deal damage
 		var damageDealt = calculateDamage();
-		sprite.health -= damageDealt;
+		sprite.hurt(damageDealt);
 		// trace('dealt ${damageDealt} damage');
 		// explode
 		explode();

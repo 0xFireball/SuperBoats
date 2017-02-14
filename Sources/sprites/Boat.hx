@@ -14,9 +14,13 @@ class Boat extends NSprite {
 	
 	private var wrapBounds:Bool = true;
 
+	public var hullShieldMax:Float = 60000;
+	public var hullShieldIntegrity:Float = 0;
+	public var hullShieldRegen:Float = 100;
+
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
-
+		
 		maxHealth = health = 100000;
 		maxVelocity.set(200, 200);
 		maxAngular = Math.PI;
@@ -30,8 +34,27 @@ class Boat extends NSprite {
 		keepInBounds();
 		drawSpray();
 		manageHealth();
+		powerShield();
 
 		super.update(dt);
+	}
+
+	private function powerShield() {
+		if (hullShieldIntegrity > 0) {
+			hullShieldIntegrity += hullShieldRegen;
+			if (hullShieldIntegrity > hullShieldMax) hullShieldIntegrity = hullShieldMax;
+		}
+	}
+
+	override public function hurt(amount:Float) {
+		// apply damage to shield, else health
+		if (hullShieldIntegrity > 0) {
+			// absorb damage into shield
+			hullShieldIntegrity -= amount;
+			if (hullShieldIntegrity < 0) hullShieldIntegrity = 0;
+		} else {
+			super.hurt(amount);
+		}
 	}
 
 	private function manageHealth() {
