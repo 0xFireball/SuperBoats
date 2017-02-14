@@ -23769,7 +23769,7 @@ sprites_Mothership.prototype = $extend(sprites_Warship.prototype,{
 	,minionCount: null
 	,maxMinionCount: null
 	,update: function(dt) {
-		if(this.minionCount < this.maxMinionCount && (Math.random() * this.minionSpawnChance | 0) == 4) {
+		if(this.get_damage() > 0.5 && this.minionCount < this.maxMinionCount && (Math.random() * this.minionSpawnChance | 0) == 4) {
 			this.minionCount++;
 			var minionDist = n4_NGame.get_hypot() / 4;
 			var minion = new sprites_Minion(this.get_center().x + Math.random() * minionDist,this.get_center().y + Math.random() * minionDist);
