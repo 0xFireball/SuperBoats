@@ -20,6 +20,8 @@ class PlayerBoat extends Boat {
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
+
+		maxHealth = health = 120000;
 		angularThrust = 0.05 * Math.PI;
 		thrust = 3.5;
 		wrapBounds = false;

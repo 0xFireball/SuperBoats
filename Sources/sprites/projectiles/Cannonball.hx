@@ -13,6 +13,7 @@ import n4.NGame;
 class Cannonball extends Projectile {
 	public function new(?X:Float = 0, ?Y:Float = 0, Target:NSprite) {
 		super(X, Y);
+		damageFactor = 0.5;
 		mass = 2200;
 		target = Target;
 		movementSpeed = 180;

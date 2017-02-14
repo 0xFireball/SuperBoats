@@ -17,6 +17,7 @@ class Boat extends NSprite {
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
 
+		maxHealth = health = 100000;
 		maxVelocity.set(200, 200);
 		maxAngular = Math.PI;
 		angularDrag = Math.PI;

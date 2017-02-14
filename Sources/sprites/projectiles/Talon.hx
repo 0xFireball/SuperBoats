@@ -18,6 +18,7 @@ class Talon extends Projectile {
 
 	public function new(?X:Float = 0, ?Y:Float = 0, Target:NSprite, ?Hydra:Bool = false) {
 		super(X, Y);
+		damageFactor = 0.4;
 		mass = 1100;
 		target = Target;
 		isHydra = hydraAvailable = Hydra;

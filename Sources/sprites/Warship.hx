@@ -20,6 +20,7 @@ class Warship extends Boat {
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
+		maxHealth = health = 4750000;
 		thrust = 0.6;
 		wrapBounds = false;
 		mass = 184000;

@@ -14,6 +14,18 @@ class Projectile extends NSprite {
 	public var movementSpeed:Float = 100;
 	public var target:NSprite;
 
+	/**
+	 * The deadliness of the weapon
+	 * This should be changed by subclasses
+	 */
+	public var damageFactor:Float = 10;
+
+	/**
+	 * How much to scale the damage by.
+	 * Subclasses should not change this.
+	 */
+	private var damageScale:Float = (1 / 6);
+
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
 		mass = 500;
@@ -25,6 +37,23 @@ class Projectile extends NSprite {
 		target.velocity.addPoint(transferredMomentum);
 
 		this.destroy();
+	}
+
+	public function calculateDamage():Float {
+		var dmMomentum = momentum.length;
+		return damageFactor * dmMomentum * damageScale;
+	}
+
+	public function hitTarget() {
+		hitSprite(target);
+	}
+
+	public function hitSprite(sprite:NSprite) {
+		// deal damage
+		var damageDealt = calculateDamage();
+		sprite.health -= damageDealt;
+		// explode
+		explode();
 	}
 
 	override public function update(dt:Float) {
