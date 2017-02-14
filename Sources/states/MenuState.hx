@@ -74,7 +74,7 @@ class MenuState extends NState implements IEmitterState {
 		// sploosh!
 		for (i in 0...12) {
 			effectEmitter.emitSquare(NGame.width / 2, NGame.height / 3, Std.int(Math.random() * 7 + 3),
-				NParticleEmitter.velocitySpread(220),
+				NParticleEmitter.velocitySpread(420),
 			NColorUtil.randCol(0.2, 0.6, 0.8, 0.2), 2.2);
 		}
 
