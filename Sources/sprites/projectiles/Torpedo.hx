@@ -18,7 +18,7 @@ class Torpedo extends Projectile {
 
 	public function new(?X:Float = 0, ?Y:Float = 0, Target:NSprite, ?Hydra:Bool = false) {
 		super(X, Y);
-		damageFactor = 4;
+		damageFactor = 1.2;
 		mass = 4400;
 		target = Target;
 		isHydra = hydraAvailable = Hydra;

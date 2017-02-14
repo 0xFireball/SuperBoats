@@ -81,6 +81,11 @@ class PlayState extends NState implements IEmitterState {
 				NGame.switchState(new GameOverState());
 			});
 		}
+		if (!mothership.exists) {
+			NGame.timers.setTimer(500, function() {
+				NGame.switchState(new YouWonState());
+			});
+		}
 	}
 
 	private function playerHitProjectile(p:PlayerBoat, j:Projectile) {
