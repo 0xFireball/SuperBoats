@@ -3,6 +3,7 @@ package states;
 import n4.NGame;
 import n4.group.NTypedGroup;
 import n4.effects.particles.NParticleEmitter;
+import n4.util.NColorUtil;
 import n4.NState;
 import n4e.ui.NEText;
 import n4.util.NAxes;
@@ -17,12 +18,16 @@ class MenuState extends NState implements IEmitterState {
 	private var titleText:NEText;
 	private var titleTextFinalCenter:Float;
 	public var emitter(default, null):NParticleEmitter;
+	public var effectEmitter:NParticleEmitter;
 
 	override public function create() {
 		Registry.MS = this;
 		
 		emitter = new NParticleEmitter(200);
 		add(emitter);
+
+		effectEmitter = new NParticleEmitter(120);
+		add(effectEmitter);
 
 		// add dummy boats
 		dummyBoats = new NTypedGroup<DummyBoat>();
@@ -46,6 +51,7 @@ class MenuState extends NState implements IEmitterState {
 		madeWithText.y = NGame.height - madeWithText.height * 1.4;
 		add(madeWithText);
 
+
 		super.create();
 	}
 
@@ -63,6 +69,13 @@ class MenuState extends NState implements IEmitterState {
 			// start game
 			// kha.SystemImpl.requestFullscreen();
 			startGame();
+		}
+
+		// sploosh!
+		for (i in 0...12) {
+			effectEmitter.emitSquare(NGame.width / 2, NGame.height / 3, Std.int(Math.random() * 7 + 3),
+				NParticleEmitter.velocitySpread(220),
+			NColorUtil.randCol(0.2, 0.6, 0.8, 0.2), 2.2);
 		}
 
 		titleText.color.A = 0.85 

@@ -6,6 +6,7 @@ import n4.NGame;
 import n4.NState;
 import n4.group.NTypedGroup;
 import n4.effects.particles.NParticleEmitter;
+import n4.util.NColorUtil;
 
 import n4e.ui.NEText;
 
