@@ -5,10 +5,10 @@ import kha.Color;
 class Minion extends Warship {
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
-		maxHealth = health = 630000;
+		maxHealth = health = 540000;
 		thrust = 0.7;
 		wrapBounds = false;
-		mass = 89000;
+		mass = 79000;
 		sprayAmount = 20;
 		spraySpread = 80;
 		angularThrust = 0.028 * Math.PI;
@@ -26,6 +26,8 @@ class Minion extends Warship {
 	}
 
 	override public function update(dt:Float) {
+		aggressive = damage < 0.7;
+
 		super.update(dt);
 	}
 

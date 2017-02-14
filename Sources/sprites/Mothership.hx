@@ -33,7 +33,7 @@ class Mothership extends Warship {
 	}
 
 	override public function update(dt:Float) {
-		if (damage > 0.5 && minionCount < maxMinionCount && Std.int(Math.random() * minionSpawnChance) == 4) {
+		if (damage > 0.44 && minionCount < maxMinionCount && Std.int(Math.random() * minionSpawnChance) == 4) {
 			minionCount++;
 			var minionDist = NGame.hypot / 4;
 			var minion = new Minion(center.x + Math.random() * minionDist, center.y + Math.random() * minionDist);

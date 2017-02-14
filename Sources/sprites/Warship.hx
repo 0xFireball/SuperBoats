@@ -17,6 +17,7 @@ class Warship extends Boat {
 	private var attackCount:Int = 0;
 	private var cannonMissRange:Float = Math.PI * 1 / 8;
 	private var torpedoMissRange:Float = Math.PI * 1 / 3;
+	public var aggressive:Bool = false;
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
@@ -116,7 +117,6 @@ class Warship extends Boat {
 		var right = false;
 		var down = false;
 
-
 		// forward is in the direction the boat is pointing
 		var facingAngle = angle; // facing upward
 		var selfPosition = new NVector(x, y);
@@ -129,7 +129,7 @@ class Warship extends Boat {
 		var targetPos = target.center.toVector();
 		// targetSetpoint = new NVector(NGame.width / 2, NGame.height / 2);
 		var fieldHypot = Math.sqrt(NGame.width * NGame.width + NGame.height * NGame.height);
-		if (selfPosition.distanceTo(targetPos) > fieldHypot / 3) {
+		if (aggressive || (selfPosition.distanceTo(targetPos) > fieldHypot / 3)) {
 			targetSetpoint = targetPos;
 		} else if (x < NGame.width / 4 || x > NGame.width * (3 / 4)
 			|| y < NGame.height / 4 || y > NGame.height * (3 / 4)) {
@@ -148,7 +148,9 @@ class Warship extends Boat {
 				}
 			} else {
 				// we're on target
-				if (distToTarget.length > fieldHypot / 4) {
+				if (aggressive) {
+					up = true;
+				} else if (distToTarget.length > fieldHypot / 4) {
 					up = true;
 				}
 			}
