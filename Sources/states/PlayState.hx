@@ -77,7 +77,9 @@ class PlayState extends NState implements IEmitterState {
 	private function checkGameStatus() {
 		if (!player.exists) {
 			// RIP, the player died
-			// TODO
+			NGame.timers.setTimer(500, function() {
+				NGame.switchState(new GameOverState());
+			});
 		}
 	}
 
