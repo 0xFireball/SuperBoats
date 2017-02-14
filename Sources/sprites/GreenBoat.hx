@@ -9,13 +9,22 @@ import n4.math.NVector;
 import n4.math.NAngle;
 import n4.NGame;
 
+import sprites.projectiles.*;
+
 class GreenBoat extends Boat {
+	private var attackTime:Float = 1.0;
+	private var attackTimer:Float = 0;
+	private var attackCount:Int = 0;
+
+	public var attacking:Bool = false;
+
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
 
 		maxHealth = health = 170000;
 		hullShieldMax = hullShieldIntegrity = 54000;
 		hullShieldRegen = 100;
+		attackTime = 0.7;
 		angularThrust = 0.05 * Math.PI;
 		thrust = 3.5;
 		wrapBounds = false;
@@ -34,8 +43,30 @@ class GreenBoat extends Boat {
 
 	override public function update(dt:Float) {
 		movement();
+		attackTimer += dt;
+		if (attackTimer > attackTime && attacking) {
+			autoFire();
+			++attackCount;
+			attackTimer = 0;
+		}
 
 		super.update(dt);
+	}
+
+	public function autoFire() {
+		var target = acquireTarget();
+		if (target == null) return;
+		var velOpp = velocity.toVector().normalize().rotate(new NPoint(0, 0), 180).scale(20);
+		var fTalon = new Talon(x + velOpp.x, y + velOpp.y, target, false);
+		// target talon
+		var tVec = fTalon.center.toVector()
+			.subtractPoint(target.center)
+			.rotate(new NPoint(0, 0), 180)
+			.toVector().normalize().scale(fTalon.movementSpeed);
+		fTalon.velocity.set(tVec.x, tVec.y);
+		// apply recoil
+		velocity.addPoint(fTalon.momentum.scale(1 / mass).negate());
+		Registry.PS.playerProjectiles.add(fTalon);
 	}
 
 	private function acquireTarget():Warship {
@@ -52,7 +83,72 @@ class GreenBoat extends Boat {
 	}
 
 	private function movement() {
-		
+		// minion should attack
+		attacking = true;
+
+		var left = false;
+		var up = false;
+		var right = false;
+		var down = false;
+
+
+		// forward is in the direction the boat is pointing
+		var facingAngle = angle; // facing upward
+		var selfPosition = new NVector(x, y);
+
+		// process AI logic
+		// if going near the edge, point to the center
+		var targetSetpoint:NVector = null;
+		var target = acquireTarget();
+		if (target == null) return;
+		var targetPos = target.center.toVector();
+		// targetSetpoint = new NVector(NGame.width / 2, NGame.height / 2);
+		var fieldHypot = Math.sqrt(NGame.width * NGame.width + NGame.height * NGame.height);
+		if (selfPosition.distanceTo(targetPos) > fieldHypot / 3) {
+			targetSetpoint = targetPos;
+		} else if (x < NGame.width / 4 || x > NGame.width * (3 / 4)
+			|| y < NGame.height / 4 || y > NGame.height * (3 / 4)) {
+			targetSetpoint = new NVector(NGame.width / 2, NGame.height / 2);
+		}
+
+		if (targetSetpoint != null) {
+			var distToTarget = new NVector(x, y).subtractNew(targetSetpoint);
+			// create an angle from the current position to the center
+			var angleToSetpoint = NAngle.asRadians(new NVector(x, y).angleBetween(targetSetpoint));
+			if (Math.abs(facingAngle - angleToSetpoint) > Math.PI / 8) {
+				if (facingAngle < angleToSetpoint) {
+					right = true;
+				} else if (facingAngle > angleToSetpoint) {
+					left = true;
+				}
+			} else {
+				// we're on target
+				if (distToTarget.length > fieldHypot / 4) {
+					up = true;
+				}
+			}
+		}
+
+		// cancel movement
+		if (left && right) left = right = false;
+		if (up && down) up = down = false;
+
+		if (left) {
+			angularVelocity -= angularThrust;
+		} else if (right) {
+			angularVelocity += angularThrust;
+		}
+		var thrustVector = new NVector(0, 0);
+		drag.set(15, 15);
+		if (up) {
+			thrustVector.add(0, -thrust);
+		} else if (down) {
+			// thrustVector.add(0, thrust);
+			// brakes
+			drag.scale(6);
+		}
+		thrustVector.rotate(new NPoint(0, 0), NAngle.asDegrees(facingAngle));
+		velocity.addPoint(thrustVector);	
 	}
 
 	override public function destroy() {

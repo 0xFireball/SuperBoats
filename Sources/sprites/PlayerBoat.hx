@@ -12,16 +12,10 @@ import n4.NGame;
 import sprites.projectiles.*;
 
 class PlayerBoat extends GreenBoat {
-	private static var attackTime:Float = 1.0;
-	private var attackTimer:Float = 0;
-	private var attackCount:Int = 0;
-
 	public var allyCount:Int = 0;
 	public var maxAllyCount:Int = 4;
 
 	private var allySpawnFrequency:Int = 800;
-
-	private var attacking:Bool = false;
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
@@ -29,6 +23,7 @@ class PlayerBoat extends GreenBoat {
 		maxHealth = health = 220000;
 		hullShieldMax = hullShieldIntegrity = 72000;
 		hullShieldRegen = 100;
+		attackTime = 1.0;
 		angularThrust = 0.05 * Math.PI;
 		thrust = 3.5;
 		wrapBounds = false;
@@ -46,13 +41,6 @@ class PlayerBoat extends GreenBoat {
 	}
 
 	override public function update(dt:Float) {
-		attackTimer += dt;
-		if (attackTimer > attackTime && attacking) {
-			attack();
-			++attackCount;
-			attackTimer = 0;
-		}
-
 		spawnAllies();
 
 		super.update(dt);
@@ -65,21 +53,6 @@ class PlayerBoat extends GreenBoat {
 			var ally = new GreenBoat(0, Math.random() * NGame.height);
 			Registry.PS.allies.add(ally);
 		}
-	}
-
-	public function attack() {
-		var target = acquireTarget();
-		var velOpp = velocity.toVector().normalize().rotate(new NPoint(0, 0), 180).scale(20);
-		var fTalon = new Talon(x + velOpp.x, y + velOpp.y, target, false);
-		// target talon
-		var tVec = fTalon.center.toVector()
-			.subtractPoint(target.center)
-			.rotate(new NPoint(0, 0), 180)
-			.toVector().normalize().scale(fTalon.movementSpeed);
-		fTalon.velocity.set(tVec.x, tVec.y);
-		// apply recoil
-		velocity.addPoint(fTalon.momentum.scale(1 / mass).negate());
-		Registry.PS.playerProjectiles.add(fTalon);
 	}
 
 	override private function movement() {

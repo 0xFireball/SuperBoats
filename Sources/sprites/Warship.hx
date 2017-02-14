@@ -58,6 +58,7 @@ class Warship extends Boat {
 
 	private function attackPlayer() {
 		var target = acquireTarget();
+		if (target == null) return;
 		var dist = center.toVector().subtractPoint(target.center);
 		var dx = dist.x;
 		var dy = dist.y;
@@ -124,6 +125,7 @@ class Warship extends Boat {
 		// if going near the edge, point to the center
 		var targetSetpoint:NVector = null;
 		var target = acquireTarget();
+		if (target == null) return;
 		var targetPos = target.center.toVector();
 		// targetSetpoint = new NVector(NGame.width / 2, NGame.height / 2);
 		var fieldHypot = Math.sqrt(NGame.width * NGame.width + NGame.height * NGame.height);
