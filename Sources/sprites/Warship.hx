@@ -123,13 +123,13 @@ class Warship extends Boat {
 
 		// process AI logic
 		// if going near the edge, point to the center
+		var chaseRadius = NGame.hypot / 4;
 		var targetSetpoint:NVector = null;
 		var target = acquireTarget();
 		if (target == null) return;
 		var targetPos = target.center.toVector();
 		// targetSetpoint = new NVector(NGame.width / 2, NGame.height / 2);
-		var fieldHypot = Math.sqrt(NGame.width * NGame.width + NGame.height * NGame.height);
-		if (aggressive || (selfPosition.distanceTo(targetPos) > fieldHypot / 3)) {
+		if (aggressive || (selfPosition.distanceTo(targetPos) > chaseRadius)) {
 			targetSetpoint = targetPos;
 		} else if (x < NGame.width / 4 || x > NGame.width * (3 / 4)
 			|| y < NGame.height / 4 || y > NGame.height * (3 / 4)) {
@@ -150,7 +150,7 @@ class Warship extends Boat {
 				// we're on target
 				if (aggressive) {
 					up = true;
-				} else if (distToTarget.length > fieldHypot / 4) {
+				} else if (distToTarget.length > chaseRadius * (2 / 3)) {
 					up = true;
 				}
 			}
