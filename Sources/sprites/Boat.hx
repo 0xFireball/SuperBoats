@@ -58,7 +58,7 @@ class Boat extends NSprite {
 			}
 		}
 
-		if (damage <= 0) {
+		if (damage >= 1) {
 			// dead!
 			explode();
 			destroy();
