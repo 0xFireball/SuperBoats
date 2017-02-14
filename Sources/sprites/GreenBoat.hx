@@ -38,6 +38,19 @@ class GreenBoat extends Boat {
 		super.update(dt);
 	}
 
+	private function acquireTarget():Warship {
+		var target:Warship = null;
+		var minDistance = NGame.hypot * 2;
+		Registry.PS.warships.forEachActive(function (boat) {
+			var dist = boat.center.distanceTo(center);
+			if (dist < minDistance) {
+				minDistance = dist;
+				target = boat;
+			}
+		});
+		return target;
+	}
+
 	private function movement() {
 		
 	}
