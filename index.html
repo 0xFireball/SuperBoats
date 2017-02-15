@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8"/>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>SuperBoats</title>
 	<style>
 		html, body {
@@ -9,16 +11,24 @@
 			height: 100%;
 			width: 100%;
 			overflow: hidden;
+			background: #222;
+		}
+		canvas {
+			padding: 0;
+			margin: auto;
+			display: block;
+			width: 1024px;
+			height: 768px;
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
 		}
 	</style>
 </head>
 <body>
 	<canvas id="khanvas" width="1024" height="768"></canvas>
-	<script>
-		var canvas = document.getElementById('khanvas');
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
-	</script>
 	<script src="kha.js"></script>
 </body>
 </html>
