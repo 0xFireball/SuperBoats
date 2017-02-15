@@ -53,6 +53,7 @@ class GreenBoat extends Boat {
 
 	override public function update(dt:Float) {
 		movement();
+
 		attackTimer += dt;
 		if (attackTimer > attackTime && lastStep.attack.anyWeapon) {
 			autoFire();
@@ -61,23 +62,7 @@ class GreenBoat extends Boat {
 		}
 
 		super.update(dt);
-	}
-
-	public function autoFire() {
-		var target = acquireTarget();
-		if (target == null) return;
-		var velOpp = velocity.toVector().normalize().rotate(new NPoint(0, 0), 180).scale(20);
-		var fTalon = new Talon(x + velOpp.x, y + velOpp.y, target, false);
-		// target talon
-		var tVec = fTalon.center.toVector()
-			.subtractPoint(target.center)
-			.rotate(new NPoint(0, 0), 180)
-			.toVector().normalize().scale(fTalon.movementSpeed);
-		fTalon.velocity.set(tVec.x, tVec.y);
-		// apply recoil
-		velocity.addPoint(fTalon.momentum.scale(1 / mass).negate());
-		Registry.PS.playerProjectiles.add(fTalon);
-	}
+	}	
 
 	private function acquireTarget():Warship {
 		var target:Warship = null;
@@ -131,6 +116,22 @@ class GreenBoat extends Boat {
 		}
 		thrustVector.rotate(new NPoint(0, 0), NAngle.asDegrees(angle));
 		velocity.addPoint(thrustVector);	
+	}
+
+	public function autoFire() {
+		var target = acquireTarget();
+		if (target == null) return;
+		var velOpp = velocity.toVector().normalize().rotate(new NPoint(0, 0), 180).scale(20);
+		var fTalon = new Talon(x + velOpp.x, y + velOpp.y, target, false);
+		// target talon
+		var tVec = fTalon.center.toVector()
+			.subtractPoint(target.center)
+			.rotate(new NPoint(0, 0), 180)
+			.toVector().normalize().scale(fTalon.movementSpeed);
+		fTalon.velocity.set(tVec.x, tVec.y);
+		// apply recoil
+		velocity.addPoint(fTalon.momentum.scale(1 / mass).negate());
+		Registry.PS.playerProjectiles.add(fTalon);
 	}
 
 	override public function destroy() {
