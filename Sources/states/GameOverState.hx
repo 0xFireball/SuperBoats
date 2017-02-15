@@ -19,9 +19,13 @@ class GameOverState extends NState {
 		var titleText = new NEText(20, 20, "SuperBoats", 35, Color.White);
 		add(titleText);
 
-		var pbt = new NEText(0, NGame.height * 0.65, "game over", 32);
+		var pbt = new NEText(0, NGame.height * 0.65, "game over (level " + Registry.levelNum + ")", 32);
 		pbt.screenCenter(NAxes.X);
 		add(pbt);
+
+		var tt2 = new NEText(0, NGame.height * 0.3, "mothership health: " + (1 - Registry.PS.mothership.damage) * 100, 45);
+		tt2.screenCenter(NAxes.X);
+		add(tt2);
 
 		emitter = new NParticleEmitter(200);
 		add(emitter);

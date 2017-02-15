@@ -22,11 +22,11 @@ class YouWonState extends NState {
 		emitter = new NParticleEmitter(200);
 		add(emitter);
 
-		var pbt = new NEText(0, NGame.height * 0.65, "you won", 32);
+		var pbt = new NEText(0, NGame.height * 0.65, "you won. level " + Registry.levelNum, 32);
 		pbt.screenCenter(NAxes.X);
 		add(pbt);
 
-		var howToStartText = new NEText(0, NGame.height * 0.75, "press G to retry, press H for Challenge Mode", 20);
+		var howToStartText = new NEText(0, NGame.height * 0.75, "press G to retry, press H to level up", 20);
 		howToStartText.screenCenter(NAxes.X);
 		add(howToStartText);
 
@@ -43,7 +43,7 @@ class YouWonState extends NState {
 
 		if (NGame.keys.justPressed(["H"])) {
 			// challenge mode
-			Registry.challengeMode = 1;
+			Registry.levelNum = 1;
 			// reopen menu
 			NGame.switchState(Registry.MS);
 		}
