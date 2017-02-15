@@ -23,16 +23,16 @@ class GameOverState extends NState {
 		pbt.screenCenter(NAxes.X);
 		add(pbt);
 
-		var tt2 = new NEText(0, NGame.height * 0.3, "mothership health: " + Std.int(1 - Registry.PS.mothership.damage * 100), 45);
+		var tt2 = new NEText(0, NGame.height * 0.3, "mothership health: " + Std.int((1 - Registry.PS.mothership.damage) * 100), 45);
+		tt2.screenCenter(NAxes.X);
+		add(tt2);
+
+		var tt2 = new NEText(0, tt2.y + 60, "press G to continue", 20);
 		tt2.screenCenter(NAxes.X);
 		add(tt2);
 
 		emitter = new NParticleEmitter(200);
 		add(emitter);
-
-		NGame.timers.setTimer(1400, function() {
-			NGame.switchState(Registry.MS);
-		});
 
 		super.create();
 	}
@@ -44,6 +44,12 @@ class GameOverState extends NState {
 				NParticleEmitter.velocitySpread(120),
 			NColorUtil.randCol(0.9, 0.3, 0.2, 0.1), 2.2);
 		}
+
+		if (NGame.keys.justPressed(["G"])) {
+			// reopen menu
+			NGame.switchState(Registry.MS);
+		}
+
 		super.update(dt);
 	}
 }
