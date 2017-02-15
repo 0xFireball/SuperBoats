@@ -23,10 +23,13 @@ class Mothership extends Warship {
 		maxVelocity.set(60, 60);
 
 		if (Registry.levelNum > 0) {
-			health *= (Registry.levelNum + 2);
+			var lvl = Registry.levelNum;
+			health *= 2 * Math.pow(1.1, lvl);
+			maxMinionCount += Math.ceil(Math.pow(1.6, lvl));
+			minionSpawnChance = Std.int(minionSpawnChance / (lvl + 1));
 			maxHealth = health;
-			hullShieldMax = hullShieldIntegrity = 180000 * Registry.levelNum;
-			hullShieldRegen = 2 + (Registry.levelNum - 1) * 2;
+			hullShieldMax = hullShieldIntegrity = 180000 * Math.pow(1.2, lvl);
+			hullShieldRegen = 2 + (lvl - 1) * 2;
 		}
 		
 		renderGraphic(30, 65, function (gpx) {

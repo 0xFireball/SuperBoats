@@ -43,7 +43,7 @@ class YouWonState extends NState {
 
 		if (NGame.keys.justPressed(["H"])) {
 			// challenge mode
-			Registry.levelNum = 1;
+		Registry.levelNum++;
 			// reopen menu
 			NGame.switchState(Registry.MS);
 		}
