@@ -35,14 +35,14 @@ class HelpState extends NState {
 		pbt.screenCenter(NAxes.X);
 		add(pbt);
 
-		var howToStartText = new NEText(0, NGame.height * 0.75, "press F to return", 20);
-		howToStartText.screenCenter(NAxes.X);
-		add(howToStartText);
-
 		if (transient) {
 			NGame.timers.setTimer(1400, function() {
 				NGame.switchState(nextState);
 			});
+		} else {
+			var howToStartText = new NEText(0, NGame.height * 0.75, "press F to return", 20);
+			howToStartText.screenCenter(NAxes.X);
+			add(howToStartText);
 		}
 
 		super.create();

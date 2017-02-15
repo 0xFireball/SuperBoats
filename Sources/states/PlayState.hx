@@ -75,17 +75,25 @@ class PlayState extends NState implements IEmitterState {
 		// check game status
 		checkGameStatus();
 
+		if (NGame.keys.justPressed(["ESC"])) {
+			// reopen menu
+			NGame.switchState(Registry.MS);
+		}
+
 		super.update(dt);
 	}
 
 	private function checkGameStatus() {
 		if (!player.exists) {
 			// RIP, the player died
+			Registry.PS = null; // can't resume
 			NGame.timers.setTimer(500, function() {
 				NGame.switchState(new GameOverState());
 			});
 		}
 		if (!mothership.exists) {
+			// wow, good job!
+			Registry.PS = null; // can't resume
 			NGame.timers.setTimer(500, function() {
 				NGame.switchState(new YouWonState());
 			});

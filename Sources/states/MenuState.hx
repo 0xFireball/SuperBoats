@@ -96,13 +96,18 @@ class MenuState extends NState implements IEmitterState {
 	}
 
 	private function startGame() {
-		var shouldShowHelp = !Registry.shownHelp;
-		var target = new PlayState();
-		if (shouldShowHelp) {
-			Registry.shownHelp = true;
-			NGame.switchState(new HelpState(true, target));
+		if (Registry.PS == null) {
+			// no saved game
+			var shouldShowHelp = !Registry.shownHelp;
+			var target = new PlayState();
+			if (shouldShowHelp) {
+				Registry.shownHelp = true;
+				NGame.switchState(new HelpState(true, target));
+			} else {
+				NGame.switchState(target);
+			}
 		} else {
-			NGame.switchState(target);
+			NGame.switchState(Registry.PS);
 		}
 	}
 }
