@@ -348,6 +348,132 @@ _$UInt_UInt_$Impl_$.toFloat = function(this1) {
 		return this1 + 0.0;
 	}
 };
+var ai_BoatAiController = function() {
+	this.style = ai_Style.Passive;
+};
+$hxClasses["ai.BoatAiController"] = ai_BoatAiController;
+ai_BoatAiController.__name__ = true;
+ai_BoatAiController.prototype = {
+	triggerRadius: null
+	,style: null
+	,me: null
+	,target: null
+	,state: null
+	,loadState: function(State) {
+		this.state = State;
+	}
+	,step: function() {
+		var result = new ai_ActionState();
+		var left = false;
+		var up = false;
+		var right = false;
+		var facingAngle = this.me.angle;
+		var selfPosition = new n4_math_NVector(this.me.x,this.me.y);
+		var chaseRadius = this.triggerRadius;
+		var targetSetpoint = null;
+		if(this.target != null) {
+			var targetPos = this.target.get_center().toVector();
+			if(this.style == ai_Style.Aggressive || this.style == ai_Style.Passive) {
+				if(selfPosition.distanceTo(targetPos) > chaseRadius) {
+					targetSetpoint = targetPos;
+				}
+			} else if(this.style == ai_Style.Defensive) {
+				if(selfPosition.distanceTo(targetPos) < chaseRadius) {
+					targetSetpoint = targetPos;
+				}
+			}
+		} else if(this.me.x < n4_NGame.width / 4 || this.me.x > n4_NGame.width * 0.75 || this.me.y < n4_NGame.height / 4 || this.me.y > n4_NGame.height * 0.75) {
+			targetSetpoint = new n4_math_NVector(n4_NGame.width / 2,n4_NGame.height / 2);
+		}
+		if(targetSetpoint != null) {
+			var nv = new n4_math_NVector(this.me.x,this.me.y).clone();
+			nv.subtractPoint(targetSetpoint);
+			var angleToSetpoint = new n4_math_NVector(this.me.x,this.me.y).angleBetween(targetSetpoint) * (Math.PI / 180);
+			if(this.style == ai_Style.Defensive) {
+				angleToSetpoint += Math.PI;
+			}
+			if(Math.abs(facingAngle - angleToSetpoint) > Math.PI / 8) {
+				if(facingAngle < angleToSetpoint) {
+					right = true;
+				} else if(facingAngle > angleToSetpoint) {
+					left = true;
+				}
+			} else if(this.style == ai_Style.Aggressive) {
+				up = true;
+			} else if(this.style == ai_Style.Passive && Math.sqrt(nv.x * nv.x + nv.y * nv.y) > chaseRadius * 0.66666666666666663) {
+				up = true;
+			} else if(this.style == ai_Style.Defensive && Math.sqrt(nv.x * nv.x + nv.y * nv.y) > chaseRadius * 1.3333333333333333) {
+				up = true;
+			}
+		}
+		result.movement.thrust = up;
+		result.movement.brake = false;
+		result.movement.left = left;
+		result.movement.right = right;
+		result.attack.lightWeapon = true;
+		result.attack.heavyWeapon = true;
+		return result;
+	}
+	,__class__: ai_BoatAiController
+};
+var ai_Style = $hxClasses["ai.Style"] = { __ename__ : true, __constructs__ : ["Passive","Aggressive","Defensive"] };
+ai_Style.Passive = ["Passive",0];
+ai_Style.Passive.toString = $estr;
+ai_Style.Passive.__enum__ = ai_Style;
+ai_Style.Aggressive = ["Aggressive",1];
+ai_Style.Aggressive.toString = $estr;
+ai_Style.Aggressive.__enum__ = ai_Style;
+ai_Style.Defensive = ["Defensive",2];
+ai_Style.Defensive.toString = $estr;
+ai_Style.Defensive.__enum__ = ai_Style;
+var ai_ActionState = function() {
+	this.attack = new ai_AttackState();
+	this.movement = new ai_MovementState();
+};
+$hxClasses["ai.ActionState"] = ai_ActionState;
+ai_ActionState.__name__ = true;
+ai_ActionState.prototype = {
+	movement: null
+	,attack: null
+	,__class__: ai_ActionState
+};
+var ai_MovementState = function() {
+};
+$hxClasses["ai.MovementState"] = ai_MovementState;
+ai_MovementState.__name__ = true;
+ai_MovementState.prototype = {
+	brake: null
+	,thrust: null
+	,left: null
+	,right: null
+	,__class__: ai_MovementState
+};
+var ai_AttackState = function() {
+};
+$hxClasses["ai.AttackState"] = ai_AttackState;
+ai_AttackState.__name__ = true;
+ai_AttackState.prototype = {
+	lightWeapon: null
+	,heavyWeapon: null
+	,anyWeapon: null
+	,get_anyWeapon: function() {
+		if(!this.lightWeapon) {
+			return this.heavyWeapon;
+		} else {
+			return true;
+		}
+	}
+	,__class__: ai_AttackState
+};
+var ai_BoatAiState = function() {
+};
+$hxClasses["ai.BoatAiState"] = ai_BoatAiState;
+ai_BoatAiState.__name__ = true;
+ai_BoatAiState.prototype = {
+	friends: null
+	,enemies: null
+	,__class__: ai_BoatAiState
+};
 var haxe_IMap = function() { };
 $hxClasses["haxe.IMap"] = haxe_IMap;
 haxe_IMap.__name__ = true;
@@ -3711,12 +3837,12 @@ $hxClasses["kha.Shaders"] = kha_Shaders;
 kha_Shaders.__name__ = true;
 kha_Shaders.init = function() {
 	kha_Shaders.painter_colored_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_colored_fragData"))),"painter_colored_frag");
-	kha_Shaders.painter_colored_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_colored_vertData"))),"painter_colored_vert");
-	kha_Shaders.painter_image_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_fragData"))),"painter_image_frag");
-	kha_Shaders.painter_text_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_fragData"))),"painter_text_frag");
-	kha_Shaders.painter_text_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_vertData"))),"painter_text_vert");
 	kha_Shaders.painter_image_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_vertData"))),"painter_image_vert");
+	kha_Shaders.painter_colored_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_colored_vertData"))),"painter_colored_vert");
+	kha_Shaders.painter_text_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_vertData"))),"painter_text_vert");
+	kha_Shaders.painter_image_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_fragData"))),"painter_image_frag");
 	kha_Shaders.painter_video_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_fragData"))),"painter_video_frag");
+	kha_Shaders.painter_text_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_fragData"))),"painter_text_frag");
 	kha_Shaders.painter_video_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_vertData"))),"painter_video_vert");
 };
 var kha_Sound = function() {
@@ -23224,6 +23350,35 @@ sprites_Boat.prototype = $extend(n4_entities_NSprite.prototype,{
 		this.powerShield();
 		n4_entities_NSprite.prototype.update.call(this,dt);
 	}
+	,moveDefault: function(Thrust,Left,Right,Brake) {
+		if(Left && Right) {
+			Right = false;
+			Left = false;
+		}
+		if(Thrust && Brake) {
+			Brake = false;
+			Thrust = false;
+		}
+		if(Left) {
+			this.angularVelocity -= this.angularThrust;
+		} else if(Right) {
+			this.angularVelocity += this.angularThrust;
+		}
+		var thrustVector = new n4_math_NVector(0,0);
+		this.drag.set(15,15);
+		if(Thrust) {
+			var Y = -this.thrust;
+			var _g = thrustVector;
+			_g.set_x(_g.x);
+			var _g1 = thrustVector;
+			_g1.set_y(_g1.y + Y);
+		} else if(Brake) {
+			this.drag.scale(6);
+		}
+		var tmp = this.angle * (180 / Math.PI);
+		thrustVector.rotate(new n4_math_NPoint(0,0),tmp);
+		this.velocity.addPoint(thrustVector);
+	}
 	,powerShield: function() {
 		if(this.hullShieldIntegrity > 0) {
 			this.hullShieldIntegrity += this.hullShieldRegen;
@@ -23390,6 +23545,12 @@ var sprites_GreenBoat = function(X,Y) {
 	this.attackTime = 1.0;
 	var _gthis = this;
 	sprites_Boat.call(this,X,Y);
+	this.aiController = new ai_BoatAiController();
+	this.aiController.me = this;
+	this.aiState = new ai_BoatAiState();
+	this.aiController.loadState(this.aiState);
+	var tmp = n4_NGame.get_hypot();
+	this.aiController.triggerRadius = tmp / 4;
 	this.maxHealth = this.health = 170000;
 	this.hullShieldMax = this.hullShieldIntegrity = 57000;
 	this.hullShieldRegen = 100;
@@ -23417,6 +23578,9 @@ sprites_GreenBoat.prototype = $extend(sprites_Boat.prototype,{
 	attackTime: null
 	,attackTimer: null
 	,attackCount: null
+	,aiController: null
+	,aiState: null
+	,lastStep: null
 	,attacking: null
 	,update: function(dt) {
 		this.movement();
@@ -23427,6 +23591,29 @@ sprites_GreenBoat.prototype = $extend(sprites_Boat.prototype,{
 			this.attackTimer = 0;
 		}
 		sprites_Boat.prototype.update.call(this,dt);
+	}
+	,acquireTarget: function() {
+		var _gthis = this;
+		var target = null;
+		var minDistance = n4_NGame.get_hypot() * 2;
+		Registry.PS.warships.forEachActive(function(boat) {
+			var dist = boat.get_center().distanceTo(_gthis.get_center());
+			if(dist < minDistance) {
+				minDistance = dist;
+				target = boat;
+			}
+		});
+		return target;
+	}
+	,movement: function() {
+		var target = this.acquireTarget();
+		this.aiState.friends = Registry.PS.allies;
+		this.aiState.enemies = Registry.PS.warships;
+		this.aiController.target = target;
+		var step = this.aiController.step();
+		this.lastStep = step;
+		this.moveDefault(step.movement.thrust,step.movement.left,step.movement.right,step.movement.brake);
+		this.attacking = this.lastStep.attack.get_anyWeapon();
 	}
 	,autoFire: function() {
 		var target = this.acquireTarget();
@@ -23444,73 +23631,6 @@ sprites_GreenBoat.prototype = $extend(sprites_Boat.prototype,{
 		tmp.addPoint(_this);
 		Registry.PS.playerProjectiles.add(fTalon);
 	}
-	,acquireTarget: function() {
-		var _gthis = this;
-		var target = null;
-		var minDistance = n4_NGame.get_hypot() * 2;
-		Registry.PS.warships.forEachActive(function(boat) {
-			var dist = boat.get_center().distanceTo(_gthis.get_center());
-			if(dist < minDistance) {
-				minDistance = dist;
-				target = boat;
-			}
-		});
-		return target;
-	}
-	,movement: function() {
-		this.attacking = true;
-		var left = false;
-		var up = false;
-		var right = false;
-		var facingAngle = this.angle;
-		var selfPosition = new n4_math_NVector(this.x,this.y);
-		var targetSetpoint = null;
-		var target = this.acquireTarget();
-		if(target == null) {
-			return;
-		}
-		var targetPos = target.get_center().toVector();
-		var fieldHypot = Math.sqrt(n4_NGame.width * n4_NGame.width + n4_NGame.height * n4_NGame.height);
-		if(selfPosition.distanceTo(targetPos) > fieldHypot / 3) {
-			targetSetpoint = targetPos;
-		} else if(this.x < n4_NGame.width / 4 || this.x > n4_NGame.width * 0.75 || this.y < n4_NGame.height / 4 || this.y > n4_NGame.height * 0.75) {
-			targetSetpoint = new n4_math_NVector(n4_NGame.width / 2,n4_NGame.height / 2);
-		}
-		if(targetSetpoint != null) {
-			var nv = new n4_math_NVector(this.x,this.y).clone();
-			nv.subtractPoint(targetSetpoint);
-			var angleToSetpoint = new n4_math_NVector(this.x,this.y).angleBetween(targetSetpoint) * (Math.PI / 180);
-			if(Math.abs(facingAngle - angleToSetpoint) > Math.PI / 8) {
-				if(facingAngle < angleToSetpoint) {
-					right = true;
-				} else if(facingAngle > angleToSetpoint) {
-					left = true;
-				}
-			} else if(Math.sqrt(nv.x * nv.x + nv.y * nv.y) > fieldHypot / 4) {
-				up = true;
-			}
-		}
-		if(left && right) {
-			right = false;
-			left = false;
-		}
-		if(left) {
-			this.angularVelocity -= this.angularThrust;
-		} else if(right) {
-			this.angularVelocity += this.angularThrust;
-		}
-		var thrustVector = new n4_math_NVector(0,0);
-		this.drag.set(15,15);
-		if(up) {
-			var Y = -this.thrust;
-			var _g = thrustVector;
-			_g.set_x(_g.x);
-			var _g1 = thrustVector;
-			_g1.set_y(_g1.y + Y);
-		}
-		thrustVector.rotate(new n4_math_NPoint(0,0),facingAngle * (180 / Math.PI));
-		this.velocity.addPoint(thrustVector);
-	}
 	,destroy: function() {
 		if(this != Registry.PS.player) {
 			Registry.PS.player.allyCount--;
@@ -23526,12 +23646,17 @@ var sprites_Warship = function(X,Y) {
 	if(X == null) {
 		X = 0;
 	}
-	this.aggressive = false;
 	this.torpedoMissRange = Math.PI / 3;
 	this.cannonMissRange = Math.PI / 8;
 	this.attackCount = 0;
 	this.attackTimer = 0;
 	sprites_Boat.call(this,X,Y);
+	this.aiController = new ai_BoatAiController();
+	this.aiController.me = this;
+	this.aiState = new ai_BoatAiState();
+	this.aiController.loadState(this.aiState);
+	var tmp = n4_NGame.get_hypot();
+	this.aiController.triggerRadius = tmp / 4;
 	this.maxHealth = this.health = 4750000;
 	this.thrust = 0.6;
 	this.wrapBounds = false;
@@ -23550,7 +23675,9 @@ sprites_Warship.prototype = $extend(sprites_Boat.prototype,{
 	,attackCount: null
 	,cannonMissRange: null
 	,torpedoMissRange: null
-	,aggressive: null
+	,aiController: null
+	,aiState: null
+	,lastStep: null
 	,update: function(dt) {
 		this.movement();
 		this.attackTimer += dt;
@@ -23638,59 +23765,13 @@ sprites_Warship.prototype = $extend(sprites_Boat.prototype,{
 		}
 	}
 	,movement: function() {
-		var left = false;
-		var up = false;
-		var right = false;
-		var facingAngle = this.angle;
-		var selfPosition = new n4_math_NVector(this.x,this.y);
-		var chaseRadius = n4_NGame.get_hypot() / 4;
-		var targetSetpoint = null;
 		var target = this.acquireTarget();
-		if(target == null) {
-			return;
-		}
-		var targetPos = target.get_center().toVector();
-		if(this.aggressive || selfPosition.distanceTo(targetPos) > chaseRadius) {
-			targetSetpoint = targetPos;
-		} else if(this.x < n4_NGame.width / 4 || this.x > n4_NGame.width * 0.75 || this.y < n4_NGame.height / 4 || this.y > n4_NGame.height * 0.75) {
-			targetSetpoint = new n4_math_NVector(n4_NGame.width / 2,n4_NGame.height / 2);
-		}
-		if(targetSetpoint != null) {
-			var nv = new n4_math_NVector(this.x,this.y).clone();
-			nv.subtractPoint(targetSetpoint);
-			var angleToSetpoint = new n4_math_NVector(this.x,this.y).angleBetween(targetSetpoint) * (Math.PI / 180);
-			if(Math.abs(facingAngle - angleToSetpoint) > Math.PI / 8) {
-				if(facingAngle < angleToSetpoint) {
-					right = true;
-				} else if(facingAngle > angleToSetpoint) {
-					left = true;
-				}
-			} else if(this.aggressive) {
-				up = true;
-			} else if(Math.sqrt(nv.x * nv.x + nv.y * nv.y) > chaseRadius * 0.66666666666666663) {
-				up = true;
-			}
-		}
-		if(left && right) {
-			right = false;
-			left = false;
-		}
-		if(left) {
-			this.angularVelocity -= this.angularThrust;
-		} else if(right) {
-			this.angularVelocity += this.angularThrust;
-		}
-		var thrustVector = new n4_math_NVector(0,0);
-		this.drag.set(15,15);
-		if(up) {
-			var Y = -this.thrust;
-			var _g = thrustVector;
-			_g.set_x(_g.x);
-			var _g1 = thrustVector;
-			_g1.set_y(_g1.y + Y);
-		}
-		thrustVector.rotate(new n4_math_NPoint(0,0),facingAngle * (180 / Math.PI));
-		this.velocity.addPoint(thrustVector);
+		this.aiState.friends = Registry.PS.warships;
+		this.aiState.enemies = Registry.PS.allies;
+		this.aiController.target = target;
+		var step = this.aiController.step();
+		this.lastStep = step;
+		this.moveDefault(step.movement.thrust,step.movement.left,step.movement.right,step.movement.brake);
 	}
 	,__class__: sprites_Warship
 });
@@ -23727,7 +23808,7 @@ sprites_Minion.__name__ = true;
 sprites_Minion.__super__ = sprites_Warship;
 sprites_Minion.prototype = $extend(sprites_Warship.prototype,{
 	update: function(dt) {
-		this.aggressive = this.get_damage() < 0.7;
+		this.aiController.style = this.get_damage() < 0.7 ? ai_Style.Aggressive : ai_Style.Defensive;
 		sprites_Warship.prototype.update.call(this,dt);
 	}
 	,destroy: function() {
@@ -23757,6 +23838,12 @@ var sprites_Mothership = function(X,Y) {
 	this.angularThrust = 0.027 * Math.PI;
 	this.maxAngular = Math.PI / 5;
 	this.maxVelocity.set(60,60);
+	if(Registry.levelNum > 0) {
+		this.health *= Registry.levelNum + 2;
+		this.maxHealth = this.health;
+		this.hullShieldMax = this.hullShieldIntegrity = 180000 * Registry.levelNum;
+		this.hullShieldRegen = 2 + (Registry.levelNum - 1) * 2;
+	}
 	this.renderGraphic(30,65,function(gpx) {
 		var ctx = gpx.get_g2();
 		ctx.begin();
@@ -23836,41 +23923,15 @@ sprites_PlayerBoat.prototype = $extend(sprites_GreenBoat.prototype,{
 		}
 	}
 	,movement: function() {
-		var left = false;
 		var up = false;
+		var left = false;
 		var right = false;
 		var down = false;
 		left = n4_NGame.keys.pressed(["A","LEFT"]);
 		up = n4_NGame.keys.pressed(["W","UP"]);
 		right = n4_NGame.keys.pressed(["D","RIGHT"]);
 		down = n4_NGame.keys.pressed(["S","DOWN"]);
-		if(left && right) {
-			right = false;
-			left = false;
-		}
-		if(up && down) {
-			down = false;
-			up = false;
-		}
-		var facingAngle = this.angle;
-		if(left) {
-			this.angularVelocity -= this.angularThrust;
-		} else if(right) {
-			this.angularVelocity += this.angularThrust;
-		}
-		var thrustVector = new n4_math_NVector(0,0);
-		this.drag.set(15,15);
-		if(up) {
-			var Y = -this.thrust;
-			var _g = thrustVector;
-			_g.set_x(_g.x);
-			var _g1 = thrustVector;
-			_g1.set_y(_g1.y + Y);
-		} else if(down) {
-			this.drag.scale(6);
-		}
-		thrustVector.rotate(new n4_math_NPoint(0,0),facingAngle * (180 / Math.PI));
-		this.velocity.addPoint(thrustVector);
+		this.moveDefault(up,left,right,down);
 		this.attacking = n4_NGame.keys.pressed(["F"]);
 	}
 	,__class__: sprites_PlayerBoat
@@ -24149,14 +24210,17 @@ states_GameOverState.prototype = $extend(n4_NState.prototype,{
 	emitter: null
 	,create: function() {
 		this.add(new n4e_ui_NEText(20,20,"SuperBoats",35,-1));
-		var pbt = new n4e_ui_NEText(0,n4_NGame.height * 0.65,"game over",32);
+		var pbt = new n4e_ui_NEText(0,n4_NGame.height * 0.65,"game over (level " + Registry.levelNum + ")",32);
 		pbt.screenCenter(n4_util_NAxes.X);
 		this.add(pbt);
+		var tt2 = new n4e_ui_NEText(0,n4_NGame.height * 0.3,"mothership health: " + ((1 - Registry.PS.mothership.get_damage()) * 100 | 0),45);
+		tt2.screenCenter(n4_util_NAxes.X);
+		this.add(tt2);
+		var tt21 = new n4e_ui_NEText(0,tt2.y + 60,"press G to continue",20);
+		tt21.screenCenter(n4_util_NAxes.X);
+		this.add(tt21);
 		this.emitter = new n4_effects_particles_NParticleEmitter(200);
 		this.add(this.emitter);
-		n4_NGame.timers.setTimer(1400,function() {
-			n4_NGame.switchState(Registry.MS);
-		});
 		n4_NState.prototype.create.call(this);
 	}
 	,update: function(dt) {
@@ -24164,6 +24228,9 @@ states_GameOverState.prototype = $extend(n4_NState.prototype,{
 		while(_g < 12) {
 			++_g;
 			this.emitter.emitSquare(n4_NGame.width / 2,n4_NGame.height / 2,Math.random() * 6 + 3 | 0,n4_effects_particles_NParticleEmitter.velocitySpread(120),n4_util_NColorUtil.randCol(0.9,0.3,0.2,0.1),2.2);
+		}
+		if(n4_NGame.keys.justPressed(["G"])) {
+			n4_NGame.switchState(Registry.MS);
 		}
 		n4_NState.prototype.update.call(this,dt);
 	}
@@ -24384,10 +24451,10 @@ states_YouWonState.prototype = $extend(n4_NState.prototype,{
 		this.add(new n4e_ui_NEText(20,20,"SuperBoats",35,-1));
 		this.emitter = new n4_effects_particles_NParticleEmitter(200);
 		this.add(this.emitter);
-		var pbt = new n4e_ui_NEText(0,n4_NGame.height * 0.65,"you won",32);
+		var pbt = new n4e_ui_NEText(0,n4_NGame.height * 0.65,"you won. level " + Registry.levelNum,32);
 		pbt.screenCenter(n4_util_NAxes.X);
 		this.add(pbt);
-		var howToStartText = new n4e_ui_NEText(0,n4_NGame.height * 0.75,"press G to retry, press H for Challenge Mode",20);
+		var howToStartText = new n4e_ui_NEText(0,n4_NGame.height * 0.75,"press G to retry, press H to level up",20);
 		howToStartText.screenCenter(n4_util_NAxes.X);
 		this.add(howToStartText);
 		n4_NState.prototype.create.call(this);
@@ -24399,7 +24466,7 @@ states_YouWonState.prototype = $extend(n4_NState.prototype,{
 			this.emitter.emitSquare(n4_NGame.width / 2,n4_NGame.height / 2,Math.random() * 6 + 3 | 0,n4_effects_particles_NParticleEmitter.velocitySpread(120),n4_util_NColorUtil.randCol(0.1,0.9,0.2,0.1),2.2);
 		}
 		if(n4_NGame.keys.justPressed(["H"])) {
-			Registry.challengeMode = 1;
+			Registry.levelNum = 1;
 			n4_NGame.switchState(Registry.MS);
 		}
 		if(n4_NGame.keys.justPressed(["G"])) {
@@ -25226,7 +25293,7 @@ if(ArrayBuffer.prototype.slice == null) {
 var DataView = $global.DataView || js_html_compat_DataView;
 var Float32Array = $global.Float32Array || js_html_compat_Float32Array._new;
 var Uint8Array = $global.Uint8Array || js_html_compat_Uint8Array._new;
-Registry.challengeMode = 0;
+Registry.levelNum = 0;
 haxe_Unserializer.DEFAULT_RESOLVER = new haxe__$Unserializer_DefaultResolver();
 haxe_Unserializer.BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%:";
 haxe_ds_ObjectMap.count = 0;
@@ -25283,12 +25350,12 @@ kha_Scheduler.DIF_COUNT = 3;
 kha_Scheduler.maxframetime = 0.5;
 kha_Scheduler.startTime = 0;
 kha_Shaders.painter_colored_fragData = "s198:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdmFyeWluZyBoaWdocCB2ZWM0IGZyYWdtZW50Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9GcmFnRGF0YVswXSA9IGZyYWdtZW50Q29sb3I7Cn0KCg";
-kha_Shaders.painter_colored_vertData = "s331:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgZnJhZ21lbnRDb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
-kha_Shaders.painter_image_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
-kha_Shaders.painter_text_fragData = "s351:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWM0IGZyYWdtZW50Q29sb3I7CnZhcnlpbmcgaGlnaHAgdmVjMiB0ZXhDb29yZDsKCnZvaWQgbWFpbigpCnsKICAgIGdsX0ZyYWdEYXRhWzBdID0gdmVjNChmcmFnbWVudENvbG9yLnh5eiwgdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpLnggKiBmcmFnbWVudENvbG9yLncpOwp9Cgo";
-kha_Shaders.painter_text_vertData = "s436:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgdGV4Q29vcmQgPSB0ZXhQb3NpdGlvbjsKICAgIGZyYWdtZW50Q29sb3IgPSB2ZXJ0ZXhDb2xvcjsKfQoK";
 kha_Shaders.painter_image_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
+kha_Shaders.painter_colored_vertData = "s331:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgZnJhZ21lbnRDb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
+kha_Shaders.painter_text_vertData = "s436:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgdGV4Q29vcmQgPSB0ZXhQb3NpdGlvbjsKICAgIGZyYWdtZW50Q29sb3IgPSB2ZXJ0ZXhDb2xvcjsKfQoK";
+kha_Shaders.painter_image_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
 kha_Shaders.painter_video_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
+kha_Shaders.painter_text_fragData = "s351:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWM0IGZyYWdtZW50Q29sb3I7CnZhcnlpbmcgaGlnaHAgdmVjMiB0ZXhDb29yZDsKCnZvaWQgbWFpbigpCnsKICAgIGdsX0ZyYWdEYXRhWzBdID0gdmVjNChmcmFnbWVudENvbG9yLnh5eiwgdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpLnggKiBmcmFnbWVudENvbG9yLncpOwp9Cgo";
 kha_Shaders.painter_video_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_System.renderListeners = [];
 kha_System.foregroundListeners = [];
