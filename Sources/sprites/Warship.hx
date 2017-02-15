@@ -9,6 +9,8 @@ import n4.NGame;
 import n4.effects.particles.NParticleEmitter;
 import n4.util.NColorUtil;
 
+import ai.BoatAiState;
+import ai.BoatAiController;
 import sprites.projectiles.*;
 
 class Warship extends Boat {
@@ -17,10 +19,15 @@ class Warship extends Boat {
 	private var attackCount:Int = 0;
 	private var cannonMissRange:Float = Math.PI * 1 / 8;
 	private var torpedoMissRange:Float = Math.PI * 1 / 3;
-	public var aggressive:Bool = false;
+	public var aiController:BoatAiController<Warship, GreenBoat>;
+	public var aiState:BoatAiState<Warship, GreenBoat>;
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
+		aiController = new BoatAiController<Warship, GreenBoat>();
+		aiController.me = this;
+		aiState = new BoatAiState<Warship, GreenBoat>();
+		aiController.loadState(aiState);
 		maxHealth = health = 4750000;
 		thrust = 0.6;
 		wrapBounds = false;
@@ -117,44 +124,16 @@ class Warship extends Boat {
 		var right = false;
 		var down = false;
 
-		// forward is in the direction the boat is pointing
-		var facingAngle = angle; // facing upward
-		var selfPosition = new NVector(x, y);
-
-		// process AI logic
-		// if going near the edge, point to the center
-		var chaseRadius = NGame.hypot / 4;
-		var targetSetpoint:NVector = null;
 		var target = acquireTarget();
-		if (target == null) return;
-		var targetPos = target.center.toVector();
-		// targetSetpoint = new NVector(NGame.width / 2, NGame.height / 2);
-		if (aggressive || (selfPosition.distanceTo(targetPos) > chaseRadius)) {
-			targetSetpoint = targetPos;
-		} else if (x < NGame.width / 4 || x > NGame.width * (3 / 4)
-			|| y < NGame.height / 4 || y > NGame.height * (3 / 4)) {
-			targetSetpoint = new NVector(NGame.width / 2, NGame.height / 2);
-		}
+		aiState.friends = Registry.PS.warships;
+		aiState.enemies = Registry.PS.allies;
+		aiController.target = target;
 
-		if (targetSetpoint != null) {
-			var distToTarget = new NVector(x, y).subtractNew(targetSetpoint);
-			// create an angle from the current position to the center
-			var angleToSetpoint = NAngle.asRadians(new NVector(x, y).angleBetween(targetSetpoint));
-			if (Math.abs(facingAngle - angleToSetpoint) > Math.PI / 8) {
-				if (facingAngle < angleToSetpoint) {
-					right = true;
-				} else if (facingAngle > angleToSetpoint) {
-					left = true;
-				}
-			} else {
-				// we're on target
-				if (aggressive) {
-					up = true;
-				} else if (distToTarget.length > chaseRadius * (2 / 3)) {
-					up = true;
-				}
-			}
-		}
+		var step = aiController.step();
+		up = step.movement.thrust;
+		down = step.movement.brake;
+		left = step.movement.left;
+		right = step.movement.right;
 
 		// cancel movement
 		if (left && right) left = right = false;
@@ -174,7 +153,7 @@ class Warship extends Boat {
 			// brakes
 			drag.scale(6);
 		}
-		thrustVector.rotate(new NPoint(0, 0), NAngle.asDegrees(facingAngle));
+		thrustVector.rotate(new NPoint(0, 0), NAngle.asDegrees(angle));
 		velocity.addPoint(thrustVector);
 	}
 }

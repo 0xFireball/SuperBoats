@@ -2,6 +2,8 @@ package sprites;
 
 import kha.Color;
 
+import ai.BoatAiController;
+
 class Minion extends Warship {
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
@@ -26,7 +28,7 @@ class Minion extends Warship {
 	}
 
 	override public function update(dt:Float) {
-		aggressive = damage < 0.7;
+		aiController.style = damage < 0.7 ? Aggressive : Defensive;
 
 		super.update(dt);
 	}
