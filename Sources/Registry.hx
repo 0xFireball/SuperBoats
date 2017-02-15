@@ -11,6 +11,7 @@ class Registry {
 	public static var MS:MenuState;
 	public static var PS:PlayState;
 	public static var currentEmitterState(get, null):IEmitterState;
+	public static var challengeMode:Int = 0;
 
 	public static function get_currentEmitterState():IEmitterState {
 		return cast (NGame.currentState, IEmitterState);

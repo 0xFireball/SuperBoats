@@ -26,14 +26,9 @@ class YouWonState extends NState {
 		pbt.screenCenter(NAxes.X);
 		add(pbt);
 
-		var howToStartText = new NEText(0, NGame.height * 0.75, "press F to continue", 30);
+		var howToStartText = new NEText(0, NGame.height * 0.75, "press G to retry, press H for Challenge Mode", 20);
 		howToStartText.screenCenter(NAxes.X);
 		add(howToStartText);
-
-		if (NGame.keys.justPressed(["F"])) {
-			// reopen menu
-			NGame.switchState(Registry.MS);
-		}
 
 		super.create();
 	}
@@ -45,6 +40,18 @@ class YouWonState extends NState {
 				NParticleEmitter.velocitySpread(120),
 			NColorUtil.randCol(0.1, 0.9, 0.2, 0.1), 2.2);
 		}
+
+		if (NGame.keys.justPressed(["H"])) {
+			// challenge mode
+			Registry.challengeMode = 1;
+			// reopen menu
+			NGame.switchState(Registry.MS);
+		}
+		if (NGame.keys.justPressed(["G"])) {
+			// reopen menu
+			NGame.switchState(Registry.MS);
+		}
+
 		super.update(dt);
 	}
 }

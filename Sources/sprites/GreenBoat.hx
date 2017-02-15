@@ -22,13 +22,14 @@ class GreenBoat extends Boat {
 		super(X, Y);
 
 		maxHealth = health = 170000;
-		hullShieldMax = hullShieldIntegrity = 54000;
+		hullShieldMax = hullShieldIntegrity = 57000;
 		hullShieldRegen = 100;
 		attackTime = 0.7;
 		angularThrust = 0.05 * Math.PI;
 		thrust = 3.5;
 		wrapBounds = false;
 		mass = 26000;
+		maxVelocity.set(200, 200);
 		sprayAmount = 8;
 		renderGraphic(14, 32, function (gpx) {
 			var ctx = gpx.g2;

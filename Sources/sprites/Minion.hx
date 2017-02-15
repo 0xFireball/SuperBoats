@@ -6,14 +6,14 @@ class Minion extends Warship {
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
 		maxHealth = health = 540000;
-		thrust = 0.7;
+		thrust = 1.9;
 		wrapBounds = false;
 		mass = 79000;
 		sprayAmount = 20;
 		spraySpread = 80;
-		angularThrust = 0.028 * Math.PI;
+		angularThrust = 0.032 * Math.PI;
 		maxAngular = Math.PI / 4;
-		maxVelocity.set(95, 95);
+		maxVelocity.set(135, 135);
 		renderGraphic(20, 43, function (gpx) {
 			var ctx = gpx.g2;
 			ctx.begin();

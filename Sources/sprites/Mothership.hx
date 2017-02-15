@@ -21,6 +21,7 @@ class Mothership extends Warship {
 		angularThrust = 0.027 * Math.PI;
 		maxAngular = Math.PI / 5;
 		maxVelocity.set(60, 60);
+		
 		renderGraphic(30, 65, function (gpx) {
 			var ctx = gpx.g2;
 			ctx.begin();
