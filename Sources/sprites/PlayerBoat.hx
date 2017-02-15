@@ -13,9 +13,9 @@ import sprites.projectiles.*;
 
 class PlayerBoat extends GreenBoat {
 	public var allyCount:Int = 0;
-	public var maxAllyCount:Int = 4;
+	public var maxAllyCount:Int = 6;
 
-	private var allySpawnFrequency:Int = 800;
+	private var allySpawnFrequency:Int = 400;
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
