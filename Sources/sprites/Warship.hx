@@ -30,6 +30,7 @@ class Warship extends Boat {
 		aiController.me = this;
 		aiState = new BoatAiState<Warship, GreenBoat>();
 		aiController.loadState(aiState);
+		aiController.triggerRadius = NGame.hypot / 4;
 		maxHealth = health = 4750000;
 		thrust = 0.6;
 		wrapBounds = false;

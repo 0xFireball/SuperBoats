@@ -34,12 +34,18 @@ class BoatAiController<T1:NSprite, T2:NSprite> {
 
 		// process AI logic
 		// if going near the edge, point to the center
-		var chaseRadius = NGame.hypot / 4;
+		var chaseRadius = triggerRadius;
 		var targetSetpoint:NVector = null;
 		if (target != null) {
 			var targetPos = target.center.toVector();
-			if (style == Aggressive || (selfPosition.distanceTo(targetPos) > chaseRadius)) {
-				targetSetpoint = targetPos;
+			if (style == Aggressive || style == Passive) {
+				if ((selfPosition.distanceTo(targetPos) > chaseRadius)) {
+					targetSetpoint = targetPos;
+				}
+			} else if (style == Defensive) {
+				if ((selfPosition.distanceTo(targetPos) < chaseRadius)) {
+					targetSetpoint = targetPos;
+				}
 			}
 		} else if (me.x < NGame.width / 4 || me.x > NGame.width * (3 / 4)
 			|| me.y < NGame.height / 4 || me.y > NGame.height * (3 / 4)) {
@@ -64,7 +70,9 @@ class BoatAiController<T1:NSprite, T2:NSprite> {
 				// we're on target
 				if (style == Aggressive) {
 					up = true;
-				} else if (distToTarget.length > chaseRadius * (2 / 3)) {
+				} else if (style == Passive && distToTarget.length > chaseRadius * (2 / 3)) {
+					up = true;
+				} else if (style == Defensive && distToTarget.length > chaseRadius * (4 / 3)) {
 					up = true;
 				}
 			}

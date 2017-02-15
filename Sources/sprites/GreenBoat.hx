@@ -30,6 +30,7 @@ class GreenBoat extends Boat {
 		aiController.me = this;
 		aiState = new BoatAiState<GreenBoat, Warship>();
 		aiController.loadState(aiState);
+		aiController.triggerRadius = NGame.hypot / 4;
 		maxHealth = health = 170000;
 		hullShieldMax = hullShieldIntegrity = 57000;
 		hullShieldRegen = 100;
