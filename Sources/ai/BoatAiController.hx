@@ -50,6 +50,10 @@ class BoatAiController<T1:NSprite, T2:NSprite> {
 			var distToTarget = new NVector(me.x, me.y).subtractNew(targetSetpoint);
 			// create an angle from the current position to the center
 			var angleToSetpoint = NAngle.asRadians(new NVector(me.x, me.y).angleBetween(targetSetpoint));
+			if (style == Defensive) {
+				// if defensive, go the opposite way
+				angleToSetpoint += Math.PI;	
+			}
 			if (Math.abs(facingAngle - angleToSetpoint) > Math.PI / 8) {
 				if (facingAngle < angleToSetpoint) {
 					right = true;
