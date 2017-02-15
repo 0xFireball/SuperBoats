@@ -23,7 +23,7 @@ class GameOverState extends NState {
 		pbt.screenCenter(NAxes.X);
 		add(pbt);
 
-		var tt2 = new NEText(0, NGame.height * 0.3, "mothership health: " + (1 - Registry.PS.mothership.damage) * 100, 45);
+		var tt2 = new NEText(0, NGame.height * 0.3, "mothership health: " + Std.int(1 - Registry.PS.mothership.damage) * 100, 45);
 		tt2.screenCenter(NAxes.X);
 		add(tt2);
 

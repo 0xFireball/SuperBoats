@@ -23,7 +23,8 @@ class Mothership extends Warship {
 		maxVelocity.set(60, 60);
 
 		if (Registry.levelNum > 0) {
-			maxHealth = health = health * (Registry.levelNum + 2));
+			health *= (Registry.levelNum + 2);
+			maxHealth = health;
 			hullShieldMax = hullShieldIntegrity = 180000 * Registry.levelNum;
 			hullShieldRegen = 2 + (Registry.levelNum - 1) * 2;
 		}
