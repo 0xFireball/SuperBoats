@@ -46,6 +46,10 @@ class MenuState extends NState implements IEmitterState {
 		howToStartText.screenCenter(NAxes.X);
 		add(howToStartText);
 
+		var pbt = new NEText(0, NGame.height * 0.67, "level " + Registry.levelNum, 20);
+		pbt.screenCenter(NAxes.X);
+		add(pbt);
+
 		var madeWithText = new NEText(0, 0, "made with n4 engine", 32);
 		madeWithText.x = NGame.width - madeWithText.width * 1.2;
 		madeWithText.y = NGame.height - madeWithText.height * 1.4;
