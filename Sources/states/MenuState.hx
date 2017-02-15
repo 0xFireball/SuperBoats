@@ -42,7 +42,7 @@ class MenuState extends NState implements IEmitterState {
 		titleTextFinalCenter = titleText.x;
 		add(titleText);
 
-		var howToStartText = new NEText(0, NGame.height * 0.5, "Press F to play", 30);
+		var howToStartText = new NEText(0, NGame.height * 0.5, "Press F to play, H for help", 30);
 		howToStartText.screenCenter(NAxes.X);
 		add(howToStartText);
 
@@ -73,6 +73,11 @@ class MenuState extends NState implements IEmitterState {
 			// start game
 			// kha.SystemImpl.requestFullscreen();
 			startGame();
+		}
+
+		if (NGame.keys.justPressed(["H"])) {
+			// start game
+			NGame.switchState(new HelpState());
 		}
 
 		// sploosh!

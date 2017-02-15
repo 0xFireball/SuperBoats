@@ -11,7 +11,7 @@ import n4.util.NColorUtil;
 import n4.util.NAxes;
 import n4e.ui.NEText;
 
-class YouWonState extends NState {
+class HelpState extends NState {
 
 	public var emitter:NParticleEmitter;
 
@@ -22,11 +22,11 @@ class YouWonState extends NState {
 		emitter = new NParticleEmitter(200);
 		add(emitter);
 
-		var pbt = new NEText(0, NGame.height * 0.65, "you won. level " + Registry.levelNum, 32);
+		var pbt = new NEText(20, NGame.height * 0.65, "use the arrow keys or wasd to move. use f or space to shoot.", 26);
 		pbt.screenCenter(NAxes.X);
 		add(pbt);
 
-		var howToStartText = new NEText(0, NGame.height * 0.75, "press G to retry, press H to level up", 20);
+		var howToStartText = new NEText(0, NGame.height * 0.75, "press F to return", 20);
 		howToStartText.screenCenter(NAxes.X);
 		add(howToStartText);
 
@@ -34,20 +34,13 @@ class YouWonState extends NState {
 	}
 
 	override public function update(dt:Float) {
-		// bright green
+		// yellow
 		for (i in 0...12) {
 			emitter.emitSquare(NGame.width / 2, NGame.height / 2, Std.int(Math.random() * 6 + 3),
 				NParticleEmitter.velocitySpread(120),
-			NColorUtil.randCol(0.1, 0.9, 0.2, 0.1), 2.2);
+			NColorUtil.randCol(0.9, 0.9, 0.2, 0.1), 2.2);
 		}
-
-		if (NGame.keys.justPressed(["H"])) {
-			// challenge mode
-			Registry.levelNum++;
-			// reopen menu
-			NGame.switchState(Registry.MS);
-		}
-		if (NGame.keys.justPressed(["G"])) {
+		if (NGame.keys.justPressed(["F"])) {
 			// reopen menu
 			NGame.switchState(Registry.MS);
 		}
