@@ -10,6 +10,8 @@ class Mothership extends Warship {
 	public var minionCount:Int = 0;
 	public var maxMinionCount:Int = 2;
 
+	private var minionDelay:Float = 0.44;
+
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
 		maxHealth = health = 4750000;
@@ -25,6 +27,7 @@ class Mothership extends Warship {
 		if (Registry.levelNum > 0) {
 			var lvl = Registry.levelNum;
 			health *= 2 * Math.pow(1.1, lvl);
+			minionDelay *= (1 / Math.pow(4, lvl));
 			maxMinionCount += Math.ceil(Math.pow(1.6, lvl));
 			minionSpawnChance = Std.int(minionSpawnChance / (lvl + 1));
 			maxHealth = health;
@@ -44,7 +47,7 @@ class Mothership extends Warship {
 	}
 
 	override public function update(dt:Float) {
-		if (damage > 0.44 && minionCount < maxMinionCount && Std.int(Math.random() * minionSpawnChance) == 4) {
+		if (damage > minionDelay && minionCount < maxMinionCount && Std.int(Math.random() * minionSpawnChance) == 4) {
 			minionCount++;
 			var minionDist = NGame.hypot / 4;
 			var minion = new Minion(center.x + Math.random() * minionDist, center.y + Math.random() * minionDist);
