@@ -81,6 +81,9 @@ class BoatAiController<T1:NSprite, T2:NSprite> {
 		result.movement.brake = down;
 		result.movement.left = left;
 		result.movement.right = right;
+
+		result.attack.lightWeapon = true;
+		result.attack.heavyWeapon = true;
 		return result;
 	}
 }
