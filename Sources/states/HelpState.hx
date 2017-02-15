@@ -55,7 +55,8 @@ class HelpState extends NState {
 				NParticleEmitter.velocitySpread(120),
 			NColorUtil.randCol(0.9, 0.9, 0.2, 0.1), 2.2);
 		}
-		if (NGame.keys.justPressed(["F"])) {
+
+		if (!transient && NGame.keys.justPressed(["F"])) {
 			// reopen menu
 			NGame.switchState(Registry.MS);
 		}

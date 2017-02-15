@@ -14,6 +14,8 @@ class Registry {
 	public static var levelNum:Int = 0;
 	public static var shownHelp:Bool = false;
 
+	public static var lastMsDamage;
+
 	public static function get_currentEmitterState():IEmitterState {
 		return cast (NGame.currentState, IEmitterState);
 	}

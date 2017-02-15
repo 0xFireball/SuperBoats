@@ -72,18 +72,21 @@ class PlayState extends NState implements IEmitterState {
 		NGame.overlap(allies, projectiles, allyHitProjectile);
 		NGame.overlap(warships, playerProjectiles, warshipHitProjectile);
 
-		// check game status
-		checkGameStatus();
-
 		if (NGame.keys.justPressed(["ESC"])) {
 			// reopen menu
 			NGame.switchState(Registry.MS);
 		}
 
 		super.update(dt);
+
+		// check game status
+		checkGameStatus();
 	}
 
 	private function checkGameStatus() {
+		// update final vars
+		Registry.lastMsDamage = mothership.damage;
+
 		if (!player.exists) {
 			// RIP, the player died
 			NGame.timers.setTimer(500, function() {
