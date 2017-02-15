@@ -97,4 +97,9 @@ class AttackState {
 	public function new() {}
 	public var lightWeapon:Bool;
 	public var heavyWeapon:Bool;
+	public var anyWeapon(get, null):Bool;
+
+	private function get_anyWeapon() {
+		return lightWeapon || heavyWeapon;
+	}
 }

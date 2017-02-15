@@ -24,6 +24,7 @@ class Warship extends Boat {
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
+
 		aiController = new BoatAiController<Warship, GreenBoat>();
 		aiController.me = this;
 		aiState = new BoatAiState<Warship, GreenBoat>();
