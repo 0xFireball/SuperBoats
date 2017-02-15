@@ -56,38 +56,20 @@ class PlayerBoat extends GreenBoat {
 	}
 
 	override private function movement() {
-		var left = false;
-		var up = false;
-		var right = false;
-		var down = false;
+		var up:Bool = false;
+		var left:Bool = false;
+		var right:Bool = false;
+		var down:Bool = false;
 
 		left = NGame.keys.pressed(["A", "LEFT"]);
 		up = NGame.keys.pressed(["W", "UP"]);
 		right = NGame.keys.pressed(["D", "RIGHT"]);
 		down = NGame.keys.pressed(["S", "DOWN"]);
 
-		// cancel movement
-		if (left && right) left = right = false;
-		if (up && down) up = down = false;
-
-		// forward is in the direction the boat is pointing
-		var facingAngle = angle; // facing upward
-		if (left) {
-			angularVelocity -= angularThrust;
-		} else if (right) {
-			angularVelocity += angularThrust;
-		}
-		var thrustVector = new NVector(0, 0);
-		drag.set(15, 15);
-		if (up) {
-			thrustVector.add(0, -thrust);
-		} else if (down) {
-			// thrustVector.add(0, thrust);
-			// brakes
-			drag.scale(6);
-		}
-		thrustVector.rotate(new NPoint(0, 0), NAngle.asDegrees(facingAngle));
-		velocity.addPoint(thrustVector);
+		moveDefault(up,
+			left,
+			right,
+			down);
 
 		attacking = NGame.keys.pressed(["F"]);
 	}

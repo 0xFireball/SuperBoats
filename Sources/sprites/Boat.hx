@@ -4,7 +4,9 @@ import n4.NGame;
 import n4.math.NPoint;
 import n4.effects.particles.NParticleEmitter;
 import n4.entities.NSprite;
+import n4.math.NAngle;
 import n4.util.NColorUtil;
+import n4.math.NVector;
 
 class Boat extends NSprite {
 	public var angularThrust(default, null):Float = 0.05 * Math.PI;
@@ -37,6 +39,29 @@ class Boat extends NSprite {
 		powerShield();
 
 		super.update(dt);
+	}
+
+	private function moveDefault(Thrust:Bool, Left:Bool, Right:Bool, Brake:Bool) {
+		// cancel movement
+		if (Left && Right) Left = Right = false;
+		if (Thrust && Brake) Thrust = Brake = false;
+
+		if (Left) {
+			angularVelocity -= angularThrust;
+		} else if (Right) {
+			angularVelocity += angularThrust;
+		}
+		var thrustVector = new NVector(0, 0);
+		drag.set(15, 15);
+		if (Thrust) {
+			thrustVector.add(0, -thrust);
+		} else if (Brake) {
+			// thrustVector.add(0, thrust);
+			// brakes
+			drag.scale(6);
+		}
+		thrustVector.rotate(new NPoint(0, 0), NAngle.asDegrees(angle));
+		velocity.addPoint(thrustVector);
 	}
 
 	private function powerShield() {

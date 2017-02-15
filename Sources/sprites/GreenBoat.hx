@@ -20,8 +20,8 @@ class GreenBoat extends Boat {
 
 	public var aiController:BoatAiController<GreenBoat, Warship>;
 	public var aiState:BoatAiState<GreenBoat, Warship>;
-	public var attacking:Bool = false;
 	public var lastStep:ActionState;
+	public var attacking:Bool = false;
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
@@ -55,7 +55,7 @@ class GreenBoat extends Boat {
 		movement();
 
 		attackTimer += dt;
-		if (attackTimer > attackTime && lastStep.attack.anyWeapon) {
+		if (attackTimer > attackTime && attacking) {
 			autoFire();
 			++attackCount;
 			attackTimer = 0;
@@ -79,10 +79,6 @@ class GreenBoat extends Boat {
 
 	private function movement() {
 		// minion should attack
-		var left = false;
-		var up = false;
-		var right = false;
-		var down = false;
 
 		var target = acquireTarget();
 		aiState.friends = Registry.PS.allies;
@@ -91,31 +87,12 @@ class GreenBoat extends Boat {
 
 		var step = aiController.step();
 		lastStep = step;
-		up = step.movement.thrust;
-		down = step.movement.brake;
-		left = step.movement.left;
-		right = step.movement.right;
+		moveDefault(step.movement.thrust,
+			step.movement.left,
+			step.movement.right,
+			step.movement.brake);
 
-		// cancel movement
-		if (left && right) left = right = false;
-		if (up && down) up = down = false;
-
-		if (left) {
-			angularVelocity -= angularThrust;
-		} else if (right) {
-			angularVelocity += angularThrust;
-		}
-		var thrustVector = new NVector(0, 0);
-		drag.set(15, 15);
-		if (up) {
-			thrustVector.add(0, -thrust);
-		} else if (down) {
-			// thrustVector.add(0, thrust);
-			// brakes
-			drag.scale(6);
-		}
-		thrustVector.rotate(new NPoint(0, 0), NAngle.asDegrees(angle));
-		velocity.addPoint(thrustVector);	
+		attacking = lastStep.attack.anyWeapon;
 	}
 
 	public function autoFire() {

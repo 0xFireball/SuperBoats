@@ -21,6 +21,7 @@ class Warship extends Boat {
 	private var torpedoMissRange:Float = Math.PI * 1 / 3;
 	public var aiController:BoatAiController<Warship, GreenBoat>;
 	public var aiState:BoatAiState<Warship, GreenBoat>;
+	public var lastStep:ActionState;
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
 		super(X, Y);
@@ -120,41 +121,16 @@ class Warship extends Boat {
 	}
 
 	private function movement() {
-		var left = false;
-		var up = false;
-		var right = false;
-		var down = false;
-
 		var target = acquireTarget();
 		aiState.friends = Registry.PS.warships;
 		aiState.enemies = Registry.PS.allies;
 		aiController.target = target;
 
 		var step = aiController.step();
-		up = step.movement.thrust;
-		down = step.movement.brake;
-		left = step.movement.left;
-		right = step.movement.right;
-
-		// cancel movement
-		if (left && right) left = right = false;
-		if (up && down) up = down = false;
-
-		if (left) {
-			angularVelocity -= angularThrust;
-		} else if (right) {
-			angularVelocity += angularThrust;
-		}
-		var thrustVector = new NVector(0, 0);
-		drag.set(15, 15);
-		if (up) {
-			thrustVector.add(0, -thrust);
-		} else if (down) {
-			// thrustVector.add(0, thrust);
-			// brakes
-			drag.scale(6);
-		}
-		thrustVector.rotate(new NPoint(0, 0), NAngle.asDegrees(angle));
-		velocity.addPoint(thrustVector);
+		lastStep = step;
+		moveDefault(step.movement.thrust,
+			step.movement.left,
+			step.movement.right,
+			step.movement.brake);
 	}
 }
