@@ -15,6 +15,15 @@ class HelpState extends NState {
 
 	public var emitter:NParticleEmitter;
 
+	public var transient:Bool;
+	public var nextState:NState;
+
+	public function new(Transient:Bool = false, ?NextState:NState) {
+		super();
+		transient = Transient;
+		nextState = NextState;
+	}
+
 	override public function create() {		
 		var titleText = new NEText(20, 20, "SuperBoats", 35, Color.White);
 		add(titleText);
@@ -29,6 +38,12 @@ class HelpState extends NState {
 		var howToStartText = new NEText(0, NGame.height * 0.75, "press F to return", 20);
 		howToStartText.screenCenter(NAxes.X);
 		add(howToStartText);
+
+		if (transient) {
+			NGame.timers.setTimer(1400, function() {
+				NGame.switchState(nextState);
+			});
+		}
 
 		super.create();
 	}

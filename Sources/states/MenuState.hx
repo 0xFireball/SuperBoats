@@ -77,7 +77,7 @@ class MenuState extends NState implements IEmitterState {
 
 		if (NGame.keys.justPressed(["H"])) {
 			// start game
-			NGame.switchState(new HelpState());
+			NGame.switchState(new HelpState(false));
 		}
 
 		// sploosh!
@@ -96,6 +96,13 @@ class MenuState extends NState implements IEmitterState {
 	}
 
 	private function startGame() {
-		NGame.switchState(new PlayState());
+		var shouldShowHelp = !Registry.shownHelp;
+		var target = new PlayState();
+		if (shouldShowHelp) {
+			Registry.shownHelp = true;
+			NGame.switchState(new HelpState(true, target));
+		} else {
+			NGame.switchState(target);
+		}
 	}
 }

@@ -71,6 +71,6 @@ class PlayerBoat extends GreenBoat {
 			right,
 			down);
 
-		attacking = NGame.keys.pressed(["F"]);
+		attacking = NGame.keys.pressed(["F", "SPACE"]);
 	}
 }
