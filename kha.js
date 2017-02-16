@@ -3836,14 +3836,14 @@ var kha_Shaders = function() { };
 $hxClasses["kha.Shaders"] = kha_Shaders;
 kha_Shaders.__name__ = true;
 kha_Shaders.init = function() {
-	kha_Shaders.painter_colored_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_colored_vertData"))),"painter_colored_vert");
 	kha_Shaders.painter_colored_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_colored_fragData"))),"painter_colored_frag");
+	kha_Shaders.painter_colored_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_colored_vertData"))),"painter_colored_vert");
 	kha_Shaders.painter_image_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_fragData"))),"painter_image_frag");
-	kha_Shaders.painter_image_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_vertData"))),"painter_image_vert");
 	kha_Shaders.painter_text_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_fragData"))),"painter_text_frag");
+	kha_Shaders.painter_image_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_image_vertData"))),"painter_image_vert");
+	kha_Shaders.painter_video_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_fragData"))),"painter_video_frag");
 	kha_Shaders.painter_text_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_text_vertData"))),"painter_text_vert");
 	kha_Shaders.painter_video_vert = new kha_graphics4_VertexShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_vertData"))),"painter_video_vert");
-	kha_Shaders.painter_video_frag = new kha_graphics4_FragmentShader(kha_internal_BytesBlob.fromBytes(haxe_Unserializer.run(Reflect.field(kha_Shaders,"painter_video_fragData"))),"painter_video_frag");
 };
 var kha_Sound = function() {
 };
@@ -23790,7 +23790,7 @@ var sprites_Minion = function(X,Y) {
 	this.mass = 79000;
 	this.sprayAmount = 20;
 	this.spraySpread = 80;
-	this.angularThrust = 0.032 * Math.PI;
+	this.angularThrust = 0.034 * Math.PI;
 	this.maxAngular = Math.PI / 4;
 	this.maxVelocity.set(135,135);
 	this.renderGraphic(20,43,function(gpx) {
@@ -23836,7 +23836,7 @@ var sprites_Mothership = function(X,Y) {
 	this.mass = 184000;
 	this.sprayAmount = 20;
 	this.spraySpread = 80;
-	this.angularThrust = 0.027 * Math.PI;
+	this.angularThrust = 0.03 * Math.PI;
 	this.maxAngular = Math.PI / 5;
 	this.maxVelocity.set(60,60);
 	if(Registry.levelNum > 0) {
@@ -23894,7 +23894,7 @@ var sprites_PlayerBoat = function(X,Y) {
 	this.maxHealth = this.health = 220000;
 	this.hullShieldMax = this.hullShieldIntegrity = 72000;
 	this.hullShieldRegen = 100;
-	this.attackTime = 1.0;
+	this.attackTime = 0.7;
 	this.angularThrust = 0.05 * Math.PI;
 	this.thrust = 3.5;
 	this.wrapBounds = false;
@@ -24353,6 +24353,8 @@ states_MenuState.prototype = $extend(n4_NState.prototype,{
 	,titleTextFinalCenter: null
 	,emitter: null
 	,effectEmitter: null
+	,levelText: null
+	,lastLevel: null
 	,create: function() {
 		Registry.MS = this;
 		this.emitter = new n4_effects_particles_NParticleEmitter(200);
@@ -24375,9 +24377,8 @@ states_MenuState.prototype = $extend(n4_NState.prototype,{
 		var howToStartText = new n4e_ui_NEText(0,n4_NGame.height * 0.5,"Press F to play, H for help",30);
 		howToStartText.screenCenter(n4_util_NAxes.X);
 		this.add(howToStartText);
-		var pbt = new n4e_ui_NEText(0,n4_NGame.height * 0.67,"level " + Registry.levelNum,20);
-		pbt.screenCenter(n4_util_NAxes.X);
-		this.add(pbt);
+		this.lastLevel = Registry.levelNum;
+		this.updateLevelDisplay();
 		var madeWithText = new n4e_ui_NEText(0,0,"made with n4 engine",32);
 		madeWithText.set_x(n4_NGame.width - madeWithText.get_width() * 1.2);
 		madeWithText.set_y(n4_NGame.height - madeWithText.get_height() * 1.4);
@@ -24410,6 +24411,10 @@ states_MenuState.prototype = $extend(n4_NState.prototype,{
 		if(n4_NGame.keys.justPressed(["H"])) {
 			n4_NGame.switchState(new states_HelpState(false));
 		}
+		if(Registry.levelNum != this.lastLevel) {
+			this.lastLevel = Registry.levelNum;
+			this.updateLevelDisplay();
+		}
 		var _g = 0;
 		while(_g < 12) {
 			++_g;
@@ -24418,6 +24423,14 @@ states_MenuState.prototype = $extend(n4_NState.prototype,{
 		var tmp = ((0.85 + 0.1 * Math.sin(n4_NGame.updateFrameCount / 8) + 0.05 * Math.sin(n4_NGame.updateFrameCount / (Math.random() * 10))) * 255 | 0) << 24;
 		this.titleText.color = tmp | (((this.titleText.color & 16711680) >>> 16) * 0.00392156862745098 * 255 | 0) << 16 | (((this.titleText.color & 65280) >>> 8) * 0.00392156862745098 * 255 | 0) << 8 | ((this.titleText.color & 255) * 0.00392156862745098 * 255 | 0);
 		n4_NState.prototype.update.call(this,dt);
+	}
+	,updateLevelDisplay: function() {
+		if(this.levelText != null) {
+			HxOverrides.remove(this.members,this.levelText);
+		}
+		this.levelText = new n4e_ui_NEText(0,n4_NGame.height * 0.67,"level " + Registry.levelNum,20);
+		this.levelText.screenCenter(n4_util_NAxes.X);
+		this.add(this.levelText);
 	}
 	,startGame: function() {
 		if(Registry.PS == null) {
@@ -25426,14 +25439,14 @@ kha_Scheduler.timeWarpSaveTime = 1.0;
 kha_Scheduler.DIF_COUNT = 3;
 kha_Scheduler.maxframetime = 0.5;
 kha_Scheduler.startTime = 0;
-kha_Shaders.painter_colored_vertData = "s331:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgZnJhZ21lbnRDb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_Shaders.painter_colored_fragData = "s198:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdmFyeWluZyBoaWdocCB2ZWM0IGZyYWdtZW50Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9GcmFnRGF0YVswXSA9IGZyYWdtZW50Q29sb3I7Cn0KCg";
+kha_Shaders.painter_colored_vertData = "s331:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgZnJhZ21lbnRDb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_Shaders.painter_image_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
-kha_Shaders.painter_image_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_Shaders.painter_text_fragData = "s351:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWM0IGZyYWdtZW50Q29sb3I7CnZhcnlpbmcgaGlnaHAgdmVjMiB0ZXhDb29yZDsKCnZvaWQgbWFpbigpCnsKICAgIGdsX0ZyYWdEYXRhWzBdID0gdmVjNChmcmFnbWVudENvbG9yLnh5eiwgdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpLnggKiBmcmFnbWVudENvbG9yLncpOwp9Cgo";
+kha_Shaders.painter_image_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
+kha_Shaders.painter_video_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
 kha_Shaders.painter_text_vertData = "s436:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgZnJhZ21lbnRDb2xvcjsKYXR0cmlidXRlIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgdGV4Q29vcmQgPSB0ZXhQb3NpdGlvbjsKICAgIGZyYWdtZW50Q29sb3IgPSB2ZXJ0ZXhDb2xvcjsKfQoK";
 kha_Shaders.painter_video_vertData = "s415:I3ZlcnNpb24gMTAwCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmF0dHJpYnV0ZSB2ZWMzIHZlcnRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzIgdGV4Q29vcmQ7CmF0dHJpYnV0ZSB2ZWMyIHRleFBvc2l0aW9uOwp2YXJ5aW5nIHZlYzQgY29sb3I7CmF0dHJpYnV0ZSB2ZWM0IHZlcnRleENvbG9yOwoKdm9pZCBtYWluKCkKewogICAgZ2xfUG9zaXRpb24gPSBwcm9qZWN0aW9uTWF0cml4ICogdmVjNCh2ZXJ0ZXhQb3NpdGlvbiwgMS4wKTsKICAgIHRleENvb3JkID0gdGV4UG9zaXRpb247CiAgICBjb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
-kha_Shaders.painter_video_fragData = "s471:I3ZlcnNpb24gMTAwCnByZWNpc2lvbiBtZWRpdW1wIGZsb2F0OwpwcmVjaXNpb24gaGlnaHAgaW50OwoKdW5pZm9ybSBoaWdocCBzYW1wbGVyMkQgdGV4OwoKdmFyeWluZyBoaWdocCB2ZWMyIHRleENvb3JkOwp2YXJ5aW5nIGhpZ2hwIHZlYzQgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBoaWdocCB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZTJEKHRleCwgdGV4Q29vcmQpICogY29sb3I7CiAgICBoaWdocCB2ZWMzIF8zMiA9IHRleGNvbG9yLnh5eiAqIGNvbG9yLnc7CiAgICB0ZXhjb2xvciA9IHZlYzQoXzMyLngsIF8zMi55LCBfMzIueiwgdGV4Y29sb3Iudyk7CiAgICBnbF9GcmFnRGF0YVswXSA9IHRleGNvbG9yOwp9Cgo";
 kha_System.renderListeners = [];
 kha_System.foregroundListeners = [];
 kha_System.resumeListeners = [];
