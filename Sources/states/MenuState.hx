@@ -19,6 +19,8 @@ class MenuState extends NState implements IEmitterState {
 	private var titleTextFinalCenter:Float;
 	public var emitter(default, null):NParticleEmitter;
 	public var effectEmitter:NParticleEmitter;
+	public var levelText:NEText;
+	private var lastLevel:Int;
 
 	override public function create() {
 		Registry.MS = this;
@@ -46,15 +48,13 @@ class MenuState extends NState implements IEmitterState {
 		howToStartText.screenCenter(NAxes.X);
 		add(howToStartText);
 
-		var pbt = new NEText(0, NGame.height * 0.67, "level " + Registry.levelNum, 20);
-		pbt.screenCenter(NAxes.X);
-		add(pbt);
+		lastLevel = Registry.levelNum;
+		updateLevelDisplay();
 
 		var madeWithText = new NEText(0, 0, "made with n4 engine", 32);
 		madeWithText.x = NGame.width - madeWithText.width * 1.2;
 		madeWithText.y = NGame.height - madeWithText.height * 1.4;
 		add(madeWithText);
-
 
 		super.create();
 	}
@@ -80,6 +80,12 @@ class MenuState extends NState implements IEmitterState {
 			NGame.switchState(new HelpState(false));
 		}
 
+		// update level
+		if (Registry.levelNum != lastLevel) {
+			lastLevel = Registry.levelNum;
+			updateLevelDisplay();
+		}
+
 		// sploosh!
 		for (i in 0...12) {
 			effectEmitter.emitSquare(NGame.width / 2, NGame.height / 3, Std.int(Math.random() * 7 + 3),
@@ -93,6 +99,15 @@ class MenuState extends NState implements IEmitterState {
 		
 		// NGame.collide(dummyBoats, dummyBoats);
 		super.update(dt);
+	}
+
+	private function updateLevelDisplay() {
+		if (levelText != null) {
+			members.remove(levelText);
+		}
+		levelText = new NEText(0, NGame.height * 0.67, "level " + Registry.levelNum, 20);
+		levelText.screenCenter(NAxes.X);
+		add(levelText);
 	}
 
 	private function startGame() {

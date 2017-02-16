@@ -13,7 +13,7 @@ class Minion extends Warship {
 		mass = 79000;
 		sprayAmount = 20;
 		spraySpread = 80;
-		angularThrust = 0.032 * Math.PI;
+		angularThrust = 0.034 * Math.PI;
 		maxAngular = Math.PI / 4;
 		maxVelocity.set(135, 135);
 		renderGraphic(20, 43, function (gpx) {

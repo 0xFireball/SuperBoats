@@ -20,7 +20,7 @@ class Mothership extends Warship {
 		mass = 184000;
 		sprayAmount = 20;
 		spraySpread = 80;
-		angularThrust = 0.027 * Math.PI;
+		angularThrust = 0.03 * Math.PI;
 		maxAngular = Math.PI / 5;
 		maxVelocity.set(60, 60);
 

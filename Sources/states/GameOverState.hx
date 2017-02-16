@@ -15,7 +15,7 @@ class GameOverState extends NState {
 
 	public var emitter:NParticleEmitter;
 
-	override public function create() {		
+	override public function create() {
 		var titleText = new NEText(20, 20, "SuperBoats", 35, Color.White);
 		add(titleText);
 
