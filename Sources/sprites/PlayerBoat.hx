@@ -61,10 +61,10 @@ class PlayerBoat extends GreenBoat {
 		var right:Bool = false;
 		var down:Bool = false;
 
-		left = NGame.keys.pressed(["A", "LEFT"]);
-		up = NGame.keys.pressed(["W", "UP"]);
-		right = NGame.keys.pressed(["D", "RIGHT"]);
-		down = NGame.keys.pressed(["S", "DOWN"]);
+		left = NGame.keys.pressed(["J", "LEFT"]);
+		up = NGame.keys.pressed(["I", "UP"]);
+		right = NGame.keys.pressed(["L", "RIGHT"]);
+		down = NGame.keys.pressed(["K", "DOWN"]);
 
 		moveDefault(up,
 			left,

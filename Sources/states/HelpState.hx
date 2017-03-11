@@ -31,7 +31,7 @@ class HelpState extends NState {
 		emitter = new NParticleEmitter(200);
 		add(emitter);
 
-		var pbt = new NEText(20, NGame.height * 0.65, "use the arrow keys or wasd to move. use f or m to shoot.", 26);
+		var pbt = new NEText(20, NGame.height * 0.65, "use the arrow keys or ijkl to move. use f or m to shoot.", 26);
 		pbt.screenCenter(NAxes.X);
 		add(pbt);
 
