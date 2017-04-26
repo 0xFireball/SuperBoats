@@ -26,9 +26,32 @@
 			right: 0;
 		}
 	</style>
+	<link rel="stylesheet" href="s/bs.min.css" />
+	<link rel="stylesheet" href="s/tr.min.css" />
 </head>
 <body>
 	<canvas id="khanvas" width="1024" height="768"></canvas>
 	<script src="kha.js"></script>
+	<script src="s/jq.min.js"></script>
+	<script src="s/tr.min.js"></script>
+	<script>
+		toastr.options = {
+		  "closeButton": false,
+		  "debug": false,
+		  "newestOnTop": false,
+		  "progressBar": false,
+		  "positionClass": "toast-top-right",
+		  "preventDuplicates": false,
+		  "showDuration": "300",
+		  "hideDuration": "2000",
+		  "timeOut": "5000",
+		  "extendedTimeOut": "1000",
+		  "showEasing": "swing",
+		  "hideEasing": "linear",
+		  "showMethod": "fadeIn",
+		  "hideMethod": "fadeOut"
+		}
+		toastr["success"]("<a href=\"https://petaphaser.itch.io/superboats2\"><b>SuperBoats 2</b> Alpha</a> is now available!", "Update!")
+	</script>
 </body>
 </html>
