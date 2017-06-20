@@ -3,6 +3,7 @@ package sprites;
 import kha.Color;
 
 import n4.NGame;
+import n4.NG;
 
 class Mothership extends Warship {
 
@@ -49,7 +50,7 @@ class Mothership extends Warship {
 	override public function update(dt:Float) {
 		if (damage > minionDelay && minionCount < maxMinionCount && Std.int(Math.random() * minionSpawnChance) == 4) {
 			minionCount++;
-			var minionDist = NGame.hypot / 4;
+			var minionDist = NG.hypot / 4;
 			var minion = new Minion(center.x + Math.random() * minionDist, center.y + Math.random() * minionDist);
 			minion.velocity.set(Math.random() * 100, Math.random() * 100);
 			Registry.PS.warships.add(minion);

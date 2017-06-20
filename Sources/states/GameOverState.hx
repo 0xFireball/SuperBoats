@@ -4,6 +4,7 @@ import kha.Assets;
 import kha.Color;
 
 import n4.NGame;
+import n4.NG;
 import n4.NState;
 import n4.effects.particles.NParticleEmitter;
 import n4.entities.NSprite;
@@ -45,7 +46,7 @@ class GameOverState extends NState {
 			NColorUtil.randCol(0.9, 0.3, 0.2, 0.1), 2.2);
 		}
 
-		if (NGame.keys.justPressed(["G"])) {
+		if (NG.keys.justPressed(["G"])) {
 			// reopen menu
 			NGame.switchState(Registry.MS);
 		}

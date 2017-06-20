@@ -3,6 +3,7 @@ package states;
 import kha.Color;
 
 import n4.NGame;
+import n4.NG;
 import n4.NState;
 import n4.group.NTypedGroup;
 import n4.effects.particles.NParticleEmitter;
@@ -69,10 +70,10 @@ class PlayState extends NState implements IEmitterState {
 
 	override public function update(dt:Float) {
 		// NGame.collide(player, warships);
-		NGame.overlap(allies, projectiles, allyHitProjectile);
-		NGame.overlap(warships, playerProjectiles, warshipHitProjectile);
+		NG.overlap(allies, projectiles, allyHitProjectile);
+		NG.overlap(warships, playerProjectiles, warshipHitProjectile);
 
-		if (NGame.keys.justPressed(["ESC"])) {
+		if (NG.keys.justPressed(["ESC"])) {
 			// reopen menu
 			NGame.switchState(Registry.MS);
 		}

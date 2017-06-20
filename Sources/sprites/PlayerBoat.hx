@@ -8,6 +8,7 @@ import n4.math.NPoint;
 import n4.math.NVector;
 import n4.math.NAngle;
 import n4.NGame;
+import n4.NG;
 
 import sprites.projectiles.*;
 
@@ -61,16 +62,16 @@ class PlayerBoat extends GreenBoat {
 		var right:Bool = false;
 		var down:Bool = false;
 
-		left = NGame.keys.pressed(["J", "LEFT"]);
-		up = NGame.keys.pressed(["I", "UP"]);
-		right = NGame.keys.pressed(["L", "RIGHT"]);
-		down = NGame.keys.pressed(["K", "DOWN"]);
+		left = NG.keys.pressed(["J", "LEFT"]);
+		up = NG.keys.pressed(["I", "UP"]);
+		right = NG.keys.pressed(["L", "RIGHT"]);
+		down = NG.keys.pressed(["K", "DOWN"]);
 
 		moveDefault(up,
 			left,
 			right,
 			down);
 
-		attacking = NGame.keys.pressed(["F", "M"]);
+		attacking = NG.keys.pressed(["F", "M"]);
 	}
 }

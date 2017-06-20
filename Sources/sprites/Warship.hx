@@ -6,6 +6,7 @@ import n4.math.NPoint;
 import n4.math.NVector;
 import n4.math.NAngle;
 import n4.NGame;
+import n4.NG;
 import n4.effects.particles.NParticleEmitter;
 import n4.util.NColorUtil;
 
@@ -30,7 +31,7 @@ class Warship extends Boat {
 		aiController.me = this;
 		aiState = new BoatAiState<Warship, GreenBoat>();
 		aiController.loadState(aiState);
-		aiController.triggerRadius = NGame.hypot / 4;
+		aiController.triggerRadius = NG.hypot / 4;
 		maxHealth = health = 4750000;
 		thrust = 0.6;
 		wrapBounds = false;
@@ -56,7 +57,7 @@ class Warship extends Boat {
 
 	private function acquireTarget():GreenBoat {
 		var target:GreenBoat = null;
-		var minDistance = NGame.hypot * 2;
+		var minDistance = NG.hypot * 2;
 		Registry.PS.allies.forEachActive(function (boat) {
 			var dist = boat.center.distanceTo(center);
 			if (dist < minDistance) {

@@ -8,6 +8,7 @@ import n4.math.NPoint;
 import n4.math.NVector;
 import n4.math.NAngle;
 import n4.NGame;
+import n4.NG;
 
 import ai.BoatAiState;
 import ai.BoatAiController;
@@ -30,7 +31,7 @@ class GreenBoat extends Boat {
 		aiController.me = this;
 		aiState = new BoatAiState<GreenBoat, Warship>();
 		aiController.loadState(aiState);
-		aiController.triggerRadius = NGame.hypot / 4;
+		aiController.triggerRadius = NG.hypot / 4;
 		maxHealth = health = 170000;
 		hullShieldMax = hullShieldIntegrity = 57000;
 		hullShieldRegen = 100;
@@ -67,7 +68,7 @@ class GreenBoat extends Boat {
 
 	private function acquireTarget():Warship {
 		var target:Warship = null;
-		var minDistance = NGame.hypot * 2;
+		var minDistance = NG.hypot * 2;
 		Registry.PS.warships.forEachActive(function (boat) {
 			var dist = boat.center.distanceTo(center);
 			if (dist < minDistance) {

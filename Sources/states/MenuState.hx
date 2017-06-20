@@ -1,6 +1,7 @@
 package states;
 
 import n4.NGame;
+import n4.NG;
 import n4.group.NTypedGroup;
 import n4.effects.particles.NParticleEmitter;
 import n4.util.NColorUtil;
@@ -69,13 +70,13 @@ class MenuState extends NState implements IEmitterState {
 			});
 		}
 
-		if (NGame.keys.justPressed(["F"])) {
+		if (NG.keys.justPressed(["F"])) {
 			// start game
 			// kha.SystemImpl.requestFullscreen();
 			startGame();
 		}
 
-		if (NGame.keys.justPressed(["H"])) {
+		if (NG.keys.justPressed(["H"])) {
 			// start game
 			NGame.switchState(new HelpState(false));
 		}
